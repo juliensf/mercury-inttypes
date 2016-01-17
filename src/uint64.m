@@ -102,6 +102,8 @@
 % Constants.
 %
 
+:- func max_uint8 = uint64.     % 0xff.
+:- func max_uint16 = uint64.    % 0xffff.
 :- func max_uint32 = uint64.    % 0xffffffff.
 :- func max_uint64 = uint64.    % Oxffffffffffffffff.
 
@@ -675,6 +677,52 @@ to_decimal_string(U) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Long.toHexString(U);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    max_uint8 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    U = UINT8_MAX;
+").
+
+:- pragma foreign_proc("C#",
+    max_uint8 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = byte.MaxValue;
+").
+
+:- pragma foreign_proc("Java",
+    max_uint8 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = 0xffL;
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    max_uint16 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    U = UINT16_MAX;
+").
+
+:- pragma foreign_proc("C#",
+    max_uint16 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = ushort.MaxValue;
+").
+
+:- pragma foreign_proc("Java",
+    max_uint16 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = 0xffffL;
 ").
 
 %---------------------------------------------------------------------------%

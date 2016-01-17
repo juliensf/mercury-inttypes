@@ -64,6 +64,8 @@ numbers = [
     uint64.eight,
     uint64.ten,
     uint64.sixteen,
+    uint64.max_uint8,
+    uint64.max_uint16,
     uint64.max_uint32,
     uint64.max_uint64
 ].
