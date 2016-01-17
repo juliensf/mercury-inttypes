@@ -103,6 +103,8 @@
 % Constants.
 %
 
+:- func max_uint8 = uint32.     % 0xff.
+:- func max_uint16 = uint32.    % 0xffff.
 :- func max_uint32 = uint32.    % Oxffffffff.
 
 :- func zero = uint32.
@@ -180,37 +182,11 @@
     SUCCESS_INDICATOR = (A == B) ? MR_TRUE : MR_FALSE;
 ").
 
-:- pragma foreign_proc("C",
-    uint32_compare(Result::uo, A::in, B::in),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
-"
-    if (A < B) {
-        Result = MR_COMPARE_LESS;
-    } else if (A > B) {
-        Result = MR_COMPARE_GREATER;
-    } else {
-        Result = MR_COMPARE_EQUAL;
-    }
-").
-
 :- pragma foreign_proc("C#",
     uint32_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     SUCCESS_INDICATOR = (A == B);
-").
-
-:- pragma foreign_proc("C#",
-    uint32_compare(Result::uo, A::in, B::in),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    if (A < B) {
-        Result = builtin.COMPARE_LESS;
-    } else if (A > B) {
-        Result = builtin.COMPARE_GREATER;
-    } else {
-        Result = builtin.COMPARE_EQUAL;
-    }
 ").
 
 :- pragma foreign_proc("Java",
@@ -220,21 +196,14 @@
     SUCCESS_INDICATOR = (A == B);
 ").
 
-:- pragma foreign_proc("Java",
-    uint32_compare(Result::uo, A::in, B::in),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    long l_A = A & 0xffffffffL;
-    long l_B = B & 0xffffffffL;
-
-    if (l_A < l_B) {
-        Result = builtin.COMPARE_LESS;
-    } else if (l_A > l_B) {
-        Result = builtin.COMPARE_GREATER;
-    } else {
-        Result = builtin.COMPARE_EQUAL;
-    }
-").
+uint32_compare(Result, A, B) :-
+    ( if A < B then
+        Result = (<)
+    else if A > B then
+        Result = (>)
+    else
+        Result = (=)
+    ).
 
 %---------------------------------------------------------------------------%
 
@@ -707,6 +676,52 @@ to_decimal_string(U) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Integer.toHexString(U);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    max_uint8 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    U = UINT8_MAX;
+").
+
+:- pragma foreign_proc("C#",
+    max_uint8 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = byte.MaxValue;
+").
+
+:- pragma foreign_proc("Java",
+    max_uint8 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = 0xff;
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    max_uint16 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    U = UINT16_MAX;
+").
+
+:- pragma foreign_proc("C#",
+    max_uint16 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = ushort.MaxValue;
+").
+
+:- pragma foreign_proc("Java",
+    max_uint16 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = 0xffff;
 ").
 
 %---------------------------------------------------------------------------%
