@@ -1,0 +1,38 @@
+*** Test uint64 conversion to binary string ***
+
+0
+1
+10
+1000
+1010
+10000
+11111111
+1111111111111111
+11111111111111111111111111111111
+1111111111111111111111111111111111111111111111111111111111111111
+
+*** Test uint64 conversion to decimal string ***
+
+0
+1
+2
+8
+10
+16
+255
+65535
+4294967295
+18446744073709551615
+
+*** Test uint64 conversion to hexadecimal string ***
+
+0
+1
+2
+8
+a
+10
+ff
+ffff
+ffffffff
+ffffffffffffffff
