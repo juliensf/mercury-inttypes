@@ -7,7 +7,7 @@ This library is a work-in-progress and not yet ready for general use.
 
 ## LICENSE
 
-'mercury_json' is licensed under a simple 2-clause BSD style license.  See the
+'mercury_inttypes' is licensed under a simple 2-clause BSD style license.  See the
 file [COPYING](COPYING) for details.
 
 ## AUTHOR
