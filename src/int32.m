@@ -688,28 +688,27 @@ A >> B =
 %---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
-    to_string(U::in) = (S::uo),
+    to_string(I::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
     char buffer[100];
-    sprintf(buffer, ""%"" PRId32 """", U);
+    sprintf(buffer, ""%"" PRId32 """", I);
     MR_allocate_aligned_string_msg(S, strlen(buffer), MR_ALLOC_ID);
     strcpy(S, buffer);
 ").
 
 :- pragma foreign_proc("C#",
-    to_string(U::in) = (S::uo),
+    to_string(I::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    S = U.ToString();
+    S = I.ToString();
 ").
 
 :- pragma foreign_proc("Java",
-    to_string(U::in) = (S::uo),
+    to_string(I::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    long l_U = U & 0xffffffffL;
-    S = java.lang.Long.toString(l_U);
+    S = java.lang.Integer.toString(I);
 ").
 
 to_decimal_string(U) =
