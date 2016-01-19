@@ -63,6 +63,17 @@
     %
 :- func unchecked_quotient(int32, int32) = int32.
 
+:- func int32 rem int32 = int32.
+
+:- func unchecked_rem(int32, int32) = int32.
+
+%---------------------------------------------------------------------------%
+%
+% Other operations.
+%
+
+:- func abs(int32) = int32.
+
 %---------------------------------------------------------------------------%
 %
 % Bitwise operations.
@@ -141,6 +152,7 @@
 :- pragma foreign_decl("C", "
 
     #include <stdint.h>
+    #include <stdlib.h>
     #include <inttypes.h>
     #include <string.h>
 
@@ -389,88 +401,145 @@ A / B =
     C = A / B;
 ").
 
-:- pragma foreign_proc("C#",
-    - (A::in) = (B::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     B = -A;
-").
+A rem B =
+    ( if int32.is_zero(B)
+    then throw(math.domain_error("int32.'rem': second operand is zero"))
+    else unchecked_rem(A, B)
+    ).
 
-:- pragma foreign_proc("C#",
-    + (A::in) = (B::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-     B = A;
-").
-
-:- pragma foreign_proc("C#",
-     (A::in) + (B::in) = (C::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     C = A + B;
-").
-
-:- pragma foreign_proc("C#",
-     (A::in) - (B::in) = (C::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     C = A - B;
-").
-
-:- pragma foreign_proc("C#",
-     (A::in) * (B::in) = (C::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     C = A * B;
-").
-
-:- pragma foreign_proc("C#",
-    unchecked_quotient(A::in, B::in) = (C::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    C = A / B;
-").
-
-:- pragma foreign_proc("Java",
-    - (A::in) = (B::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     B = -A;
-").
-
-:- pragma foreign_proc("Java",
-    + (A::in) = (B::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-     B = A;
-").
-
-:- pragma foreign_proc("Java",
-     (A::in) + (B::in) = (C::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     C = A + B;
-").
-
-:- pragma foreign_proc("Java",
-     (A::in) - (B::in) = (C::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     C = A - B;
-").
-
-:- pragma foreign_proc("Java",
-     (A::in) * (B::in) = (C::out),
-     [will_not_call_mercury, promise_pure, thread_safe],
-"
-     C = A * B;
-").
-
-:- pragma foreign_proc("Java",
-    unchecked_quotient(A::in, B::in) = (C::out),
+:- pragma foreign_proc("C",
+    unchecked_rem(A::in, B::in) = (C::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
+    C = A % B;
+").
+
+:- pragma foreign_proc("C#",
+    - (A::in) = (B::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     B = -A;
+").
+
+:- pragma foreign_proc("C#",
+    + (A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+     B = A;
+").
+
+:- pragma foreign_proc("C#",
+     (A::in) + (B::in) = (C::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     C = A + B;
+").
+
+:- pragma foreign_proc("C#",
+     (A::in) - (B::in) = (C::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     C = A - B;
+").
+
+:- pragma foreign_proc("C#",
+     (A::in) * (B::in) = (C::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     C = A * B;
+").
+
+:- pragma foreign_proc("C#",
+    unchecked_quotient(A::in, B::in) = (C::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
     C = A / B;
+").
+
+:- pragma foreign_proc("C#",
+    unchecked_rem(A::in, B::in) = (C::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    C = A % B;
+").
+
+:- pragma foreign_proc("Java",
+    - (A::in) = (B::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     B = -A;
+").
+
+:- pragma foreign_proc("Java",
+    + (A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+     B = A;
+").
+
+:- pragma foreign_proc("Java",
+     (A::in) + (B::in) = (C::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     C = A + B;
+").
+
+:- pragma foreign_proc("Java",
+     (A::in) - (B::in) = (C::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     C = A - B;
+").
+
+:- pragma foreign_proc("Java",
+     (A::in) * (B::in) = (C::out),
+     [will_not_call_mercury, promise_pure, thread_safe],
+"
+     C = A * B;
+").
+
+:- pragma foreign_proc("Java",
+    unchecked_quotient(A::in, B::in) = (C::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    C = A / B;
+").
+
+:- pragma foreign_proc("Java",
+    unchecked_rem(A::in, B::in) = (C::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    C = A % B;
+").
+
+%---------------------------------------------------------------------------%
+%
+% Other operations.
+%
+
+:- pragma foreign_proc("C",
+    abs(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    /* XXX C doesn't provide a wrapper for abs() with int32_t.
+    ** On pretty much all system we are intrested in it will be equivalent
+    ** to int.
+    */
+    B = abs(A);
+").
+
+:- pragma foreign_proc("C#",
+    abs(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = System.Math.Abs(A);
+").
+
+:- pragma foreign_proc("Java",
+    abs(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Math.abs(A);
 ").
 
 %---------------------------------------------------------------------------%
