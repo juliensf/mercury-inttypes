@@ -12,6 +12,8 @@ else
 fi
 
 TESTS="
+    arith_int32
+    arith_int64
     cmp_uint32
     cmp_uint64
     to_string_int32

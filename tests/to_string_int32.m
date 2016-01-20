@@ -2,7 +2,7 @@
 % vim: ft=mercury ts=4 sw=4 et wm=0 tw=0
 %---------------------------------------------------------------------------%
 
-% Test conversion to strings for nsigned 64-bit integers.
+% Test conversion to strings for unsigned 64-bit integers.
 
 :- module to_string_int32.
 :- interface.
