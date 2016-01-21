@@ -18,6 +18,8 @@ TESTS="
     arith_uint64
     bitwise_uint32
     bitwise_uint64
+    cmp_int32
+    cmp_int64
     cmp_uint32
     cmp_uint64
     to_string_int32
