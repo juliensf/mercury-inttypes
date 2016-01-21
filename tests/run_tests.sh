@@ -16,6 +16,7 @@ TESTS="
     arith_int64
     arith_uint32
     arith_uint64
+    bitwise_uint32
     cmp_uint32
     cmp_uint64
     to_string_int32
