@@ -598,7 +598,7 @@ A >> B =
     unchecked_right_shift(A::in, B::in) = (C::out),
     [promise_pure, will_not_call_mercury, thread_safe],
 "
-    C = A >>> B;
+    C = A >> B;
 ").
 
 :- pragma foreign_proc("C",
