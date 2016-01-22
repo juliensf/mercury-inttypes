@@ -217,8 +217,6 @@ uint64(I) = det_from_int(I).
 "
     if (I < 0) {
         SUCCESS_INDICATOR = MR_FALSE;
-    } else if (I > (MR_Integer) INT32_MAX) {
-        SUCCESS_INDICATOR = MR_FALSE;
     } else {
         U = (uint64_t) I;
         SUCCESS_INDICATOR = MR_TRUE;

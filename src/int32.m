@@ -222,8 +222,9 @@ int32(I) = det_from_int(I).
     from_int(A::in, B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    B = (int) A;
     if (A > (MR_Integer) INT32_MAX) {
+        SUCCESS_INDICATOR = MR_FALSE;
+    } else if (A < (MR_Integer) INT32_MIN) {
         SUCCESS_INDICATOR = MR_FALSE;
     } else {
         B = (int32_t) A;
