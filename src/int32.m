@@ -202,7 +202,7 @@
     int32_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A == B);
+    SUCCESS_INDICATOR = (A.intValue() == B.intValue());
 ").
 
 int32_compare(Result, A, B) :-
@@ -528,12 +528,10 @@ A rem B =
     B = abs(A);
 ").
 
-:- pragma foreign_proc("C#",
-    abs(A::in) = (B::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    B = System.Math.Abs(A);
-").
+% NOTE: the C# backend uses the following Mercury definition because
+% System.Math.Abs() will throw an OverflowException for abs(int32.min_int32).
+
+abs(I) = ( if I < int32.zero then int32.zero - I else I ).
 
 :- pragma foreign_proc("Java",
     abs(A::in) = (B::out),

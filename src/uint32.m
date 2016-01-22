@@ -193,7 +193,7 @@
     uint32_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A == B);
+    SUCCESS_INDICATOR = (A.intValue() == B.intValue());
 ").
 
 uint32_compare(Result, A, B) :-

@@ -38,7 +38,7 @@ do
         printf "ERROR building '$t'\n"
     else
         ./$t > $t.out
-        if diff -u $t.out $t.exp > $t.diff
+        if diff -u $t.exp $t.out > $t.diff
         then
            printf "PASSED: $t\n"
 	   /bin/rm -f $t.out $t.diff

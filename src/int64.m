@@ -72,7 +72,6 @@
 
 :- func abs(int64) = int64.
 
-
 %---------------------------------------------------------------------------%
 %
 % Bitwise operations.
@@ -205,7 +204,7 @@
     int64_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A == B);
+    SUCCESS_INDICATOR = (A.longValue() == B.longValue());
 ").
 
 int64_compare(Result, A, B) :-
@@ -516,12 +515,10 @@ A rem B =
     B = labs(A);
 ").
 
-:- pragma foreign_proc("C#",
-    abs(A::in) = (B::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    B = System.Math.Abs(A);
-").
+% NOTE: the C# backend uses the following Mercury definition because
+% System.Math.Abs() will throw an OverflowException for abs(int64.min_int64).
+
+abs(I) = ( if I < int64.zero then int64.zero - I else I ).
 
 :- pragma foreign_proc("Java",
     abs(A::in) = (B::out),

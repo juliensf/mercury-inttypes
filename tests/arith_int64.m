@@ -25,6 +25,12 @@
 %---------------------------------------------------------------------------%
 
 main(!IO) :-
+    run_unop_test(int64.(+), "+", !IO),
+    io.nl(!IO),
+    run_unop_test(int64.(-), "-", !IO),
+    io.nl(!IO),
+    run_unop_test(int64.abs, "abs", !IO),
+    io.nl(!IO),
     run_binop_test(int64.(+), "+", !IO),
     io.nl(!IO),
     run_binop_test(int64.(-), "-", !IO),
@@ -34,6 +40,32 @@ main(!IO) :-
     run_binop_test(int64.(/), "/", !IO),
     io.nl(!IO),
     run_binop_test(int64.(rem), "rem", !IO).
+
+%---------------------------------------------------------------------------%
+
+:- pred run_unop_test((func(int64) = int64)::in, string::in,
+    io::di, io::uo) is cc_multi.
+
+run_unop_test(UnOpFunc, Desc, !IO) :-
+    io.format("*** Test unary operation '%s' ***\n\n", [s(Desc)], !IO),
+    As = numbers,
+    list.foldl(run_unop_test_2(UnOpFunc, Desc), As, !IO).
+
+:- pred run_unop_test_2((func(int64) = int64)::in, string::in, int64::in,
+    io::di, io::uo) is cc_multi.
+
+run_unop_test_2(UnOpFunc, Desc, A, !IO) :-
+    ( try []
+        Result0 = UnOpFunc(A)
+    then
+        ResultStr = to_string(Result0)
+    catch_any _ ->
+        ResultStr = "<<exception>>"
+    ),
+    io.format("%s %s = %s\n",
+        [s(Desc), s(to_string(A)), s(ResultStr)], !IO).
+
+%---------------------------------------------------------------------------%
 
 :- pred run_binop_test((func(int64, int64) = int64)::in, string::in,
     io::di, io::uo) is cc_multi.

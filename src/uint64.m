@@ -195,7 +195,7 @@
     uint64_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A == B);
+    SUCCESS_INDICATOR = (A.longValue() == B.longValue());
 ").
 
 uint64_compare(Result, A, B) :-
@@ -643,6 +643,9 @@ to_decimal_string(U) =
     to_binary_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
+    // NOTE: C# does not provide a format provider for ulong here, so we
+    // need to cast U to a long.  The binary representation will be the
+    // same in either case.
     S = System.Convert.ToString((long)U, 2);
 ").
 
