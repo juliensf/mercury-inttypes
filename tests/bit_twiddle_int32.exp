@@ -1,0 +1,59 @@
+*** Test function 'num_zeros' ***
+
+num_zeros(-2147483648) = 31
+num_zeros(-32768) = 15
+num_zeros(-128) = 7
+num_zeros(0) = 32
+num_zeros(1) = 31
+num_zeros(2) = 31
+num_zeros(8) = 31
+num_zeros(10) = 30
+num_zeros(16) = 31
+num_zeros(127) = 25
+num_zeros(32767) = 17
+num_zeros(2147483647) = 1
+
+*** Test function 'num_ones' ***
+
+num_ones(-2147483648) = 1
+num_ones(-32768) = 17
+num_ones(-128) = 25
+num_ones(0) = 0
+num_ones(1) = 1
+num_ones(2) = 1
+num_ones(8) = 1
+num_ones(10) = 2
+num_ones(16) = 1
+num_ones(127) = 7
+num_ones(32767) = 15
+num_ones(2147483647) = 31
+
+*** Test function 'num_leading_zeros' ***
+
+num_leading_zeros(-2147483648) = 0
+num_leading_zeros(-32768) = 0
+num_leading_zeros(-128) = 0
+num_leading_zeros(0) = 32
+num_leading_zeros(1) = 31
+num_leading_zeros(2) = 30
+num_leading_zeros(8) = 28
+num_leading_zeros(10) = 28
+num_leading_zeros(16) = 27
+num_leading_zeros(127) = 25
+num_leading_zeros(32767) = 17
+num_leading_zeros(2147483647) = 1
+
+*** Test function 'num_trailing_zeros' ***
+
+num_trailing_zeros(-2147483648) = 31
+num_trailing_zeros(-32768) = 15
+num_trailing_zeros(-128) = 7
+num_trailing_zeros(0) = 32
+num_trailing_zeros(1) = 0
+num_trailing_zeros(2) = 1
+num_trailing_zeros(8) = 3
+num_trailing_zeros(10) = 1
+num_trailing_zeros(16) = 4
+num_trailing_zeros(127) = 0
+num_trailing_zeros(32767) = 0
+num_trailing_zeros(2147483647) = 0

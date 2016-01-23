@@ -17,20 +17,18 @@
 
 %---------------------------------------------------------------------------%
 
-    % uint64(I) = U:
-    %
-:- func uint64(int) = uint64.
-
-    % from_int(I, U):
+    % from_int(A, B):
     % Fails if I < 0.
     %
 :- pred from_int(int::in, uint64::out) is semidet.
 
-    % Synonym for uint64/1.
+    % As above, but throws a software_error/1 exception instead of failing.
     %
 :- func det_from_int(int) = uint64.
 
-%:- pred to_int(uint64::in, int::out) is semidet.
+    % A synonym for the function det_from_int/1.
+    %
+:- func uint64(int) = uint64.
 
 %---------------------------------------------------------------------------%
 %
@@ -74,12 +72,19 @@
 %
 
 :- func uint64 << int = uint64.
+
 :- func uint64 >> int = uint64.
+
 :- func unchecked_left_shift(uint64, int) = uint64.
+
 :- func unchecked_right_shift(uint64, int) = uint64.
+
 :- func (uint64::in) /\ (uint64::in) = (uint64::out) is det.
+
 :- func (uint64::in) \/ (uint64::in) = (uint64::out) is det.
+
 :- func xor(uint64, uint64) = uint64.
+
 :- func \ (uint64::in) = (uint64::out) is det.
 
 %---------------------------------------------------------------------------%
@@ -96,6 +101,28 @@
 :- func to_decimal_string(uint64::in) = (string::uo) is det.
 
 :- func to_hex_string(uint64::in) = (string::uo) is det.
+
+%---------------------------------------------------------------------------%
+
+    % num_zeros(U) = N:
+    % N is the number of zeros in the binary representation of U.
+    %
+:- func num_zeros(uint64) = int.
+
+    % num_ones(U) = N:
+    % N is the number of ones in the binary representation of U.
+    %
+:- func num_ones(uint64) = int.
+
+    % num_leading_zeros(U) = N:
+    % N is the number of leading zeros in the binary representation of U.
+    %
+:- func num_leading_zeros(uint64) = int.
+
+    % num_trailing_zeros(U) = N:
+    % N is the number of trailing zeros in the binary representation of U.
+    %
+:- func num_trailing_zeros(uint64) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -227,7 +254,7 @@ uint64(I) = det_from_int(I).
     from_int(I::in, U::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    U = (uint) I;
+    U = (ulong) I;
     SUCCESS_INDICATOR = (I < 0) ? false : true;
 ").
 
@@ -611,7 +638,6 @@ to_decimal_string(U) =
 
 %---------------------------------------------------------------------------%
 
-
 :- pragma foreign_proc("C",
     to_binary_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -678,6 +704,135 @@ to_decimal_string(U) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Long.toHexString(U);
+").
+
+%---------------------------------------------------------------------------%
+
+% The algorithms in this section are from chapter 5 of ``Hacker's Delight''
+% by Henry S. Warren, Jr.
+% (Java uses the same.)
+
+num_zeros(U) = 64 - num_ones(U).
+
+:- pragma foreign_proc("C",
+    num_ones(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    U = U - ((U >> 1) & 0x5555555555555555L);
+    U = (U & 0x3333333333333333L) + ((U >> 2) & 0x3333333333333333L);
+    U = (U + (U >> 4)) & 0x0f0f0f0f0f0f0f0fL;
+    U = U + (U >> 8);
+    U = U + (U >> 16);
+    U = U + (U >> 32);
+    N = U & 0x7f;
+").
+
+:- pragma foreign_proc("C#",
+    num_ones(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = U - ((U >> 1) & 0x5555555555555555L);
+    U = (U & 0x3333333333333333L) + ((U >> 2) & 0x3333333333333333L);
+    U = (U + (U >> 4)) & 0x0f0f0f0f0f0f0f0fL;
+    U = U + (U >> 8);
+    U = U + (U >> 16);
+    U = U + (U >> 32);
+    N = (int) (U & 0x7f);
+").
+
+:- pragma foreign_proc("Java",
+    num_ones(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    N = java.lang.Long.bitCount(U);
+").
+
+:- pragma foreign_proc("C",
+    num_leading_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    if (U == 0) {
+        N = 64;
+    } else {
+        int32_t n = 1;
+        uint32_t x = (uint32_t)(U >> 32);
+        if (x == 0) { n += 32; x = (uint32_t)U; }
+        if (x >> 16 == 0) { n += 16; x <<= 16; }
+        if (x >> 24 == 0) { n +=  8; x <<=  8; }
+        if (x >> 28 == 0) { n +=  4; x <<=  4; }
+        if (x >> 30 == 0) { n +=  2; x <<=  2; }
+        N = n - (x >> 31);
+    }
+").
+
+:- pragma foreign_proc("C#",
+    num_leading_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    if (U == 0) {
+        N = 64;
+    } else {
+        int n = 1;
+        uint x = (uint)(U >> 32);
+        if (x == 0) { n += 32; x = (uint)U; }
+        if (x >> 16 == 0) { n += 16; x <<= 16; }
+        if (x >> 24 == 0) { n +=  8; x <<=  8; }
+        if (x >> 28 == 0) { n +=  4; x <<=  4; }
+        if (x >> 30 == 0) { n +=  2; x <<=  2; }
+        N = n - (int)(x >> 31);
+    }
+").
+
+:- pragma foreign_proc("Java",
+    num_leading_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    N = java.lang.Long.numberOfLeadingZeros(U);
+").
+
+:- pragma foreign_proc("C",
+    num_trailing_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    if (U == 0) {
+        N = 64;
+    } else {
+
+        uint32_t x, y;
+        int n = 63;
+        y = (int32_t) U; if (y != 0) { n = n - 32; x = y; } else { x = (uint32_t)(U >> 32); }
+        y = x << 16; if (y != 0) { n = n -16; x = y; }
+        y = x <<  8; if (y != 0) { n = n - 8; x = y; }
+        y = x <<  4; if (y != 0) { n = n - 4; x = y; }
+        y = x <<  2; if (y != 0) { n = n - 2; x = y; }
+        N = n - (int)((x << 1) >> 31);
+    }
+").
+
+:- pragma foreign_proc("C#",
+    num_trailing_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    if (U == 0) {
+        N = 64;
+    } else {
+
+        uint x, y;
+        int n = 63;
+        y = (uint) U; if (y != 0) { n = n - 32; x = y; } else { x = (uint)(U >> 32); }
+        y = x << 16; if (y != 0) { n = n -16; x = y; }
+        y = x <<  8; if (y != 0) { n = n - 8; x = y; }
+        y = x <<  4; if (y != 0) { n = n - 4; x = y; }
+        y = x <<  2; if (y != 0) { n = n - 2; x = y; }
+        N = n - (int)((x << 1) >> 31);
+    }
+").
+
+:- pragma foreign_proc("Java",
+    num_trailing_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    N = java.lang.Long.numberOfTrailingZeros(U);
 ").
 
 %---------------------------------------------------------------------------%

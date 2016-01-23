@@ -17,11 +17,19 @@
 
 %---------------------------------------------------------------------------%
 
-:- func int32(int) = int32.
-
+    % from_int(A, B):
+    % Convert an int to a signed 32-bit integer.
+    % Fails if A is not in [int32.min_int, int32.max_int].
+    %
 :- pred from_int(int::in, int32::out) is semidet.
 
+    % As above, but throw an software_error/1 exception instead of failing
+    %
 :- func det_from_int(int) = int32.
+
+    % A synonym for the function det_from_int/1.
+    %
+:- func int32(int) = int32.
 
 %---------------------------------------------------------------------------%
 %
@@ -80,12 +88,19 @@
 %
 
 :- func int32 << int = int32.
+
 :- func int32 >> int = int32.
+
 :- func unchecked_left_shift(int32, int) = int32.
+
 :- func unchecked_right_shift(int32, int) = int32.
+
 :- func (int32::in) /\ (int32::in) = (int32::out) is det.
+
 :- func (int32::in) \/ (int32::in) = (int32::out) is det.
+
 :- func xor(int32, int32) = int32.
+
 :- func \ (int32::in) = (int32::out) is det.
 
 %---------------------------------------------------------------------------%
@@ -102,6 +117,28 @@
 :- func to_decimal_string(int32::in) = (string::uo) is det.
 
 :- func to_hex_string(int32::in) = (string::uo) is det.
+
+%---------------------------------------------------------------------------%
+
+    % num_zeros(I) = N:
+    % N is the number of zeros in the binary representation of I.
+    %
+:- func num_zeros(int32) = int.
+
+    % num_ones(I) = N:
+    % N is the number of ones in the binary representation of I.
+    %
+:- func num_ones(int32) = int.
+
+    % num_leading_zeros(I) = N:
+    % N is the number of leading zeros in the binary representation of I.
+    %
+:- func num_leading_zeros(int32) = int.
+
+    % num_trailing_zeros(I) = N:
+    % N is the number of trailing zeros in the binary representation of I.
+    %
+:- func num_trailing_zeros(int32) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -523,7 +560,7 @@ A rem B =
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
     /* XXX C doesn't provide a wrapper for abs() with int32_t.
-    ** On pretty much all system we are intrested in it will be equivalent
+    ** On pretty much all system we are interested in it will be equivalent
     ** to int.
     */
     B = abs(A);
@@ -781,6 +818,133 @@ to_decimal_string(U) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Integer.toHexString(I);
+").
+
+%---------------------------------------------------------------------------%
+
+% The algorithms in this section are from chapter 5 of ``Hacker's Delight''
+% by Henry S. Warren, Jr.
+% (Java uses the same.)
+
+num_zeros(U) = 32 - num_ones(U).
+
+:- pragma foreign_proc("C",
+    num_ones(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    uint32_t U = I;
+    U = U - ((U >> 1) & 0x55555555);
+    U = (U & 0x33333333) + ((U >> 2) & 0x33333333);
+    U = (U + (U >> 4)) & 0x0f0f0f0f;
+    U = U + (U >> 8);
+    U = U + (U >> 16);
+    N = U & 0x3f;
+").
+
+:- pragma foreign_proc("C#",
+    num_ones(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    uint U = (uint) I;
+    U = U - ((U >> 1) & 0x55555555);
+    U = (U & 0x33333333) + ((U >> 2) & 0x33333333);
+    U = (U + (U >> 4)) & 0x0f0f0f0f;
+    U = U + (U >> 8);
+    U = U + (U >> 16);
+    N = (int) (U & 0x3f);
+").
+
+:- pragma foreign_proc("Java",
+    num_ones(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    N = java.lang.Integer.bitCount(U);
+").
+
+:- pragma foreign_proc("C",
+    num_leading_zeros(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    uint32_t U = I;
+    if (U == 0) {
+        N = 32;
+    } else {
+        int32_t n = 1;
+        if ((U >> 16) == 0) { n += 16; U <<= 16; }
+        if ((U >> 24) == 0) { n += 8;  U <<= 8;  }
+        if ((U >> 28) == 0) { n += 4;  U <<= 4;  }
+        if ((U >> 30) == 0) { n += 2;  U <<= 2;  }
+        N = n - (U >> 31);
+    }
+").
+
+:- pragma foreign_proc("C#",
+    num_leading_zeros(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    uint U = (uint) I;
+    if (U == 0) {
+        N = 32;
+    } else {
+        int n = 1;
+        if ((U >> 16) == 0) { n += 16; U <<= 16; }
+        if ((U >> 24) == 0) { n += 8;  U <<= 8;  }
+        if ((U >> 28) == 0) { n += 4;  U <<= 4;  }
+        if ((U >> 30) == 0) { n += 2;  U <<= 2;  }
+        N = n - (int)(U >> 31);
+    }
+").
+
+:- pragma foreign_proc("Java",
+    num_leading_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    N = java.lang.Integer.numberOfLeadingZeros(U);
+").
+
+:- pragma foreign_proc("C",
+    num_trailing_zeros(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    uint32_t U = I;
+    if (U == 0) {
+        N = 32;
+    } else {
+        int32_t     n = 31;
+        uint32_t    y;
+        y = U << 16; if (y != 0) { n = n -16; U = y; }
+        y = U <<  8; if (y != 0) { n = n - 8; U = y; }
+        y = U <<  4; if (y != 0) { n = n - 4; U = y; }
+        y = U <<  2; if (y != 0) { n = n - 2; U = y; }
+        y = U <<  1; if (y != 0) { n = n - 1; }
+        N = n;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    num_trailing_zeros(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    uint U = (uint) I;
+    if (U == 0) {
+        N = 32;
+    } else {
+        int     n = 31;
+        uint    y;
+        y = U << 16; if (y != 0) { n -= 16; U = y; }
+        y = U <<  8; if (y != 0) { n -= 8;  U = y; }
+        y = U <<  4; if (y != 0) { n -= 4;  U = y; }
+        y = U <<  2; if (y != 0) { n -= 2;  U = y; }
+        y = U <<  1; if (y != 0) { n -= 1; }
+        N = n;
+    }
+").
+
+:- pragma foreign_proc("Java",
+    num_trailing_zeros(U::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    N = java.lang.Integer.numberOfTrailingZeros(U);
 ").
 
 %---------------------------------------------------------------------------%

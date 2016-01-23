@@ -16,6 +16,10 @@ TESTS="
     arith_int64
     arith_uint32
     arith_uint64
+    bit_twiddle_int32
+    bit_twiddle_int64
+    bit_twiddle_uint32
+    bit_twiddle_uint64
     bitwise_int32
     bitwise_int64
     bitwise_uint32
