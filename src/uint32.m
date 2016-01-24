@@ -124,6 +124,10 @@
     %
 :- func num_trailing_zeros(uint32) = int.
 
+:- func reverse_bytes(uint32) = uint32.
+
+:- func reverse_bits(uint32) = uint32.
+
 %---------------------------------------------------------------------------%
 %
 % Constants.
@@ -716,12 +720,12 @@ num_zeros(U) = 32 - num_ones(U).
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = U - ((U >> 1) & 0x55555555);
-    U = (U & 0x33333333) + ((U >> 2) & 0x33333333);
-    U = (U + (U >> 4)) & 0x0f0f0f0f;
+    U = U - ((U >> 1) & UINT32_C(0x55555555));
+    U = (U & UINT32_C(0x33333333)) + ((U >> 2) & UINT32_C(0x33333333));
+    U = (U + (U >> 4)) & UINT32_C(0x0f0f0f0f);
     U = U + (U >> 8);
     U = U + (U >> 16);
-    N = U & 0x3f;
+    N = U & UINT32_C(0x3f);
 ").
 
 :- pragma foreign_proc("C#",
@@ -767,7 +771,6 @@ num_zeros(U) = 32 - num_ones(U).
         N = 32;
     } else {
         int n = 1;
-
         if ((U >> 16) == 0) { n = n + 16; U = U << 16; }
         if ((U >> 24) == 0) { n = n + 8;  U = U << 8;  }
         if ((U >> 28) == 0) { n = n + 4;  U = U << 4;  }
@@ -787,19 +790,16 @@ num_zeros(U) = 32 - num_ones(U).
     num_trailing_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-
     if (U == 0) {
         N = 32;
     } else {
-
         int32_t     n = 31;
         uint32_t    y;
-
-        y = U << 16; if (y != 0) { n = n -16; U = y; }
-        y = U <<  8; if (y != 0) { n = n - 8; U = y; }
-        y = U <<  4; if (y != 0) { n = n - 4; U = y; }
-        y = U <<  2; if (y != 0) { n = n - 2; U = y; }
-        y = U <<  1; if (y != 0) { n = n - 1; }
+        y = U << 16; if (y != 0) { n -= 16; U = y; }
+        y = U <<  8; if (y != 0) { n -= 8;  U = y; }
+        y = U <<  4; if (y != 0) { n -= 4;  U = y; }
+        y = U <<  2; if (y != 0) { n -= 2;  U = y; }
+        y = U <<  1; if (y != 0) { n -= 1; }
         N = n;
     }
 ").
@@ -811,10 +811,8 @@ num_zeros(U) = 32 - num_ones(U).
     if (U == 0) {
         N = 32;
     } else {
-
         int     n = 31;
         uint    y;
-
         y = U << 16; if (y != 0) { n = n -16; U = y; }
         y = U <<  8; if (y != 0) { n = n - 8; U = y; }
         y = U <<  4; if (y != 0) { n = n - 4; U = y; }
@@ -829,6 +827,61 @@ num_zeros(U) = 32 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     N = java.lang.Integer.numberOfTrailingZeros(U);
+").
+
+:- pragma foreign_proc("C",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B =  (A & UINT32_C(0x000000ff)) << 24 |
+         (A & UINT32_C(0x0000ff00)) << 8  |
+         (A & UINT32_C(0x00ff0000)) >> 8  |
+         (A & UINT32_C(0xff000000)) >> 24;
+").
+
+:- pragma foreign_proc("C#",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B =  (A & 0x000000ffU) << 24 | (A & 0x0000ff00U) << 8 |
+         (A & 0x00ff0000U) >> 8  | (A & 0xff000000U) >> 24;
+").
+
+:- pragma foreign_proc("Java",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Integer.reverseBytes(A);
+").
+
+:- pragma foreign_proc("C",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    A = (A & UINT32_C(0x55555555)) << 1 | (A >> 1) & UINT32_C(0x55555555);
+    A = (A & UINT32_C(0x33333333)) << 2 | (A >> 2) & UINT32_C(0x33333333);
+    A = (A & UINT32_C(0x0f0f0f0f)) << 4 | (A >> 4) & UINT32_C(0x0f0f0f0f);
+    A = (A << 24) | ((A & UINT32_C(0xff00)) << 8) |
+                    ((A >> 8) & UINT32_C(0xff00)) | (A >> 24);
+    B = A;
+").
+
+:- pragma foreign_proc("C#",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    A = (A & 0x55555555) << 1 | (A >> 1) & 0x55555555;
+    A = (A & 0x33333333) << 2 | (A >> 2) & 0x33333333;
+    A = (A & 0x0f0f0f0f) << 4 | (A >> 4) & 0x0f0f0f0f;
+    A = (A << 24) | ((A & 0xff00) << 8) | ((A >> 8) & 0xff00) | (A >> 24);
+    B = A;
+").
+
+:- pragma foreign_proc("Java",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Integer.reverse(A);
 ").
 
 %---------------------------------------------------------------------------%
@@ -906,7 +959,7 @@ num_zeros(U) = 32 - num_ones(U).
     zero = (U::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = 0U;
+    U = UINT32_C(0);
 ").
 
 :- pragma foreign_proc("C#",
@@ -929,7 +982,7 @@ num_zeros(U) = 32 - num_ones(U).
     one = (U::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = 1U;
+    U = UINT32_C(1);
 ").
 
 :- pragma foreign_proc("C#",
@@ -952,7 +1005,7 @@ num_zeros(U) = 32 - num_ones(U).
     two = (U::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = 2U;
+    U = UINT32_C(2);
 ").
 
 :- pragma foreign_proc("C#",
@@ -975,7 +1028,7 @@ num_zeros(U) = 32 - num_ones(U).
     eight = (U::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = 8U;
+    U = UINT32_C(8);
 ").
 
 :- pragma foreign_proc("C#",
@@ -998,7 +1051,7 @@ num_zeros(U) = 32 - num_ones(U).
     ten = (U::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = 10U;
+    U = UINT32_C(10);
 ").
 
 :- pragma foreign_proc("C#",
@@ -1021,7 +1074,7 @@ num_zeros(U) = 32 - num_ones(U).
     sixteen = (U::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = 16U;
+    U = UINT32_C(16);
 ").
 
 :- pragma foreign_proc("C#",

@@ -833,12 +833,12 @@ num_zeros(U) = 32 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
     uint32_t U = I;
-    U = U - ((U >> 1) & 0x55555555);
-    U = (U & 0x33333333) + ((U >> 2) & 0x33333333);
-    U = (U + (U >> 4)) & 0x0f0f0f0f;
+    U = U - ((U >> 1) & UINT32_C(0x55555555));
+    U = (U & UINT32_C(0x33333333)) + ((U >> 2) & UINT32_C(0x33333333));
+    U = (U + (U >> 4)) & UINT32_C(0x0f0f0f0f);
     U = U + (U >> 8);
     U = U + (U >> 16);
-    N = U & 0x3f;
+    N = U & UINT32_C(0x3f);
 ").
 
 :- pragma foreign_proc("C#",
@@ -846,12 +846,12 @@ num_zeros(U) = 32 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     uint U = (uint) I;
-    U = U - ((U >> 1) & 0x55555555);
-    U = (U & 0x33333333) + ((U >> 2) & 0x33333333);
-    U = (U + (U >> 4)) & 0x0f0f0f0f;
+    U = U - ((U >> 1) & 0x55555555U);
+    U = (U & 0x33333333U) + ((U >> 2) & 0x33333333U);
+    U = (U + (U >> 4)) & 0x0f0f0f0fU;
     U = U + (U >> 8);
     U = U + (U >> 16);
-    N = (int) (U & 0x3f);
+    N = (int) (U & 0x3fU);
 ").
 
 :- pragma foreign_proc("Java",

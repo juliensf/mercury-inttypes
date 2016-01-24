@@ -31,9 +31,15 @@ main(!IO) :-
     io.nl(!IO),
     run_twiddle_test(uint32.num_leading_zeros, "num_leading_zeros", !IO),
     io.nl(!IO),
-    run_twiddle_test(uint32.num_trailing_zeros, "num_trailing_zeros", !IO).
+    run_twiddle_test(uint32.num_trailing_zeros, "num_trailing_zeros", !IO),
+    io.nl(!IO),
+    run_twiddle_test_b(uint32.reverse_bits, "reverse_bits", !IO),
+    io.nl(!IO),
+    run_twiddle_test_b(uint32.reverse_bytes, "reverse_bytes", !IO).
 
 %---------------------------------------------------------------------------%
+
+% Test uint32 -> int functions.
 
 :- pred run_twiddle_test((func(uint32) = int)::in, string::in,
     io::di, io::uo) is cc_multi.
@@ -56,6 +62,32 @@ run_twiddle_test_2(Func, Desc, A, !IO) :-
     ),
     io.format("%s(%s) = %s\n",
         [s(Desc), s(to_decimal_string(A)), s(ResultStr)], !IO).
+
+%---------------------------------------------------------------------------%
+
+% Test uint32 -> uint32 functions.
+
+:- pred run_twiddle_test_b((func(uint32) = uint32)::in, string::in,
+    io::di, io::uo) is cc_multi.
+
+run_twiddle_test_b(Func, Desc, !IO) :-
+    io.format("*** Test function '%s' ***\n\n", [s(Desc)], !IO),
+    As = numbers,
+    list.foldl(run_twiddle_test_b_2(Func, Desc), As, !IO).
+
+:- pred run_twiddle_test_b_2((func(uint32) = uint32)::in, string::in,
+    uint32::in, io::di, io::uo) is cc_multi.
+
+run_twiddle_test_b_2(Func, Desc, A, !IO) :-
+    ( try []
+        Result0 = Func(A)
+    then
+        ResultStr = to_binary_string(Result0)
+    catch_any _ ->
+        ResultStr = "<<exception>>"
+    ),
+    io.format("%s(%s) = %s\n",
+        [s(Desc), s(to_binary_string(A)), s(ResultStr)], !IO).
 
 %---------------------------------------------------------------------------%
 

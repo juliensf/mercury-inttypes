@@ -817,9 +817,9 @@ num_zeros(U) = 64 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
     uint64_t U = I;
-    U = U - ((U >> 1) & 0x5555555555555555L);
-    U = (U & 0x3333333333333333L) + ((U >> 2) & 0x3333333333333333L);
-    U = (U + (U >> 4)) & 0x0f0f0f0f0f0f0f0fL;
+    U = U - ((U >> 1) & UINT64_C(0x5555555555555555));
+    U = (U & UINT64_C(0x3333333333333333)) + ((U >> 2) & UINT64_C(0x3333333333333333));
+    U = (U + (U >> 4)) & UINT64_C(0x0f0f0f0f0f0f0f0f);
     U = U + (U >> 8);
     U = U + (U >> 16);
     U = U + (U >> 32);
