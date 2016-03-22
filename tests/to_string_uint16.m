@@ -2,9 +2,9 @@
 % vim: ft=mercury ts=4 sw=4 et wm=0 tw=0
 %---------------------------------------------------------------------------%
 
-% Test conversion to strings for signed 32-bit integers.
+% Test conversion to strings for unsigned 16-bit integers.
 
-:- module to_string_int32.
+:- module to_string_uint16.
 :- interface.
 
 :- import_module io.
@@ -16,7 +16,7 @@
 
 :- implementation.
 
-:- import_module int32.
+:- import_module uint16.
 
 :- import_module list.
 :- import_module string.
@@ -30,37 +30,33 @@ main(!IO) :-
     io.nl(!IO),
     run_to_string_test(to_hex_string, "hexadecimal", !IO).
 
-:- pred run_to_string_test((func(int32) = string)::in, string::in,
+:- pred run_to_string_test((func(uint16) = string)::in, string::in,
     io::di, io::uo) is det.
 
 run_to_string_test(ConvFunc, Desc, !IO) :-
-    io.format("*** Test int32 conversion to %s string ***\n\n", [s(Desc)], !IO),
+    io.format("*** Test uint16 conversion to %s string ***\n\n", [s(Desc)], !IO),
     list.foldl(run_to_string_test_2(ConvFunc), numbers, !IO).
 
-:- pred run_to_string_test_2((func(int32) = string)::in, int32::in,
+:- pred run_to_string_test_2((func(uint16) = string)::in, uint16::in,
     io::di, io::uo) is det.
 
 run_to_string_test_2(ConvFunc, N, !IO) :-
     S = ConvFunc(N),
     io.format("%s\n", [s(S)], !IO).
 
-:- func numbers = list(int32).
+:- func numbers = list(uint16).
 
 numbers = [
-    int32.min_int32,
-    int32.min_int16,
-    int32.min_int8,
-    int32.zero,
-    int32.one,
-    int32.two,
-    int32.eight,
-    int32.ten,
-    int32.sixteen,
-    int32.max_int8,
-    int32.max_int16,
-    int32.max_int32
+    uint16.zero,
+    uint16.one,
+    uint16.two,
+    uint16.eight,
+    uint16.ten,
+    uint16.sixteen,
+    uint16.max_uint8,
+    uint16.max_uint16
 ].
 
 %---------------------------------------------------------------------------%
-:- end_module to_string_int32.
+:- end_module to_string_uint16.
 %---------------------------------------------------------------------------%

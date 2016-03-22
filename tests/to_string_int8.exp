@@ -1,0 +1,32 @@
+*** Test int8 conversion to binary string ***
+
+10000000
+0
+1
+10
+1000
+1010
+10000
+1111111
+
+*** Test int8 conversion to decimal string ***
+
+-128
+0
+1
+2
+8
+10
+16
+127
+
+*** Test int8 conversion to hexadecimal string ***
+
+80
+0
+1
+2
+8
+a
+10
+7f

@@ -1,0 +1,29 @@
+*** Test uint8 conversion to binary string ***
+
+0
+1
+10
+1000
+1010
+10000
+11111111
+
+*** Test uint8 conversion to decimal string ***
+
+0
+1
+2
+8
+10
+16
+255
+
+*** Test uint8 conversion to hexadecimal string ***
+
+0
+1
+2
+8
+a
+10
+ff

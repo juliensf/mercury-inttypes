@@ -116,16 +116,26 @@
 
     % num_leading_zeros(U) = N:
     % N is the number of leading zeros in the binary representation of U.
+    % Note that num_leading_zeros(uint32.zero) = 32.
     %
 :- func num_leading_zeros(uint32) = int.
 
     % num_trailing_zeros(U) = N:
     % N is the number of trailing zeros in the binary representation of U.
+    % Note that num_trailing_zeros(uint32.zero) = 32.
     %
 :- func num_trailing_zeros(uint32) = int.
 
+    % reverse_bytes(A) = B:
+    % B is the value that results from reversing the bytes in the
+    % representation of A.
+    %
 :- func reverse_bytes(uint32) = uint32.
 
+    % reverse_bits(A) = B:
+    % B is the is value that results from reversing the bits in the
+    % representation of A.
+    %
 :- func reverse_bits(uint32) = uint32.
 
 %---------------------------------------------------------------------------%
@@ -460,7 +470,7 @@ A / B =
 
 :- pragma foreign_proc("Java",
     unchecked_quotient(A::in, B::in) = (C::out),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+    [will_not_call_mercury, promise_pure, thread_safe],
 "
     long l_A = A & 0xffffffffL;
     long l_B = B & 0xffffffffL;
@@ -642,7 +652,6 @@ to_decimal_string(U) =
 
 %---------------------------------------------------------------------------%
 
-
 :- pragma foreign_proc("C",
     to_binary_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -714,18 +723,31 @@ to_decimal_string(U) =
 % by Henry S. Warren, Jr.
 % (Java uses the same.)
 
+% Much of the following code assumes that:
+%
+%   sizeof(uint32_t) == sizeof(unsigned int)
+%
+% which is true for all the system that are of interest to us.
+
 num_zeros(U) = 32 - num_ones(U).
 
 :- pragma foreign_proc("C",
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
+/*
+** For MSVC we should use __popcnt().
+*/
+#if (defined(MR_GNUC) || defined(MR_CLANG))
+    N = __builtin_popcount(U);
+#else
     U = U - ((U >> 1) & UINT32_C(0x55555555));
     U = (U & UINT32_C(0x33333333)) + ((U >> 2) & UINT32_C(0x33333333));
     U = (U + (U >> 4)) & UINT32_C(0x0f0f0f0f);
     U = U + (U >> 8);
     U = U + (U >> 16);
     N = U & UINT32_C(0x3f);
+#endif
 ").
 
 :- pragma foreign_proc("C#",
@@ -754,12 +776,21 @@ num_zeros(U) = 32 - num_ones(U).
     if (U == 0) {
         N = 32;
     } else {
+    /*
+    ** XXX for MSVC we should use __lzcnt().
+    ** (Note that __lzcnt(0) = 32.)
+    */
+    #if defined(MR_GNUC) || defined(MR_CLANG)
+        /* Note that __builtin_clz(0) is undefined. */
+        N = __builtin_clz(U);
+    #else
         int32_t n = 1;
         if ((U >> 16) == 0) { n += 16; U <<= 16; }
         if ((U >> 24) == 0) { n += 8;  U <<= 8;  }
         if ((U >> 28) == 0) { n += 4;  U <<= 4;  }
         if ((U >> 30) == 0) { n += 2;  U <<= 2;  }
         N = n - (U >> 31);
+    #endif
     }
 ").
 
@@ -793,6 +824,9 @@ num_zeros(U) = 32 - num_ones(U).
     if (U == 0) {
         N = 32;
     } else {
+    #if defined(MR_GNUC) || defined(MR_CLANG)
+        N = __builtin_ctz(U);
+    #else
         int32_t     n = 31;
         uint32_t    y;
         y = U << 16; if (y != 0) { n -= 16; U = y; }
@@ -801,6 +835,7 @@ num_zeros(U) = 32 - num_ones(U).
         y = U <<  2; if (y != 0) { n -= 2;  U = y; }
         y = U <<  1; if (y != 0) { n -= 1; }
         N = n;
+    #endif
     }
 ").
 
@@ -831,12 +866,16 @@ num_zeros(U) = 32 - num_ones(U).
 
 :- pragma foreign_proc("C",
     reverse_bytes(A::in) = (B::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    B =  (A & UINT32_C(0x000000ff)) << 24 |
-         (A & UINT32_C(0x0000ff00)) << 8  |
-         (A & UINT32_C(0x00ff0000)) >> 8  |
-         (A & UINT32_C(0xff000000)) >> 24;
+#if defined(MR_GNUC) || defined(MR_CLANG)
+    B = __builtin_bswap32(A);
+#else
+    B = (A & UINT32_C(0x000000ff)) << 24 |
+        (A & UINT32_C(0x0000ff00)) << 8  |
+        (A & UINT32_C(0x00ff0000)) >> 8  |
+        (A & UINT32_C(0xff000000)) >> 24;
+#endif
 ").
 
 :- pragma foreign_proc("C#",

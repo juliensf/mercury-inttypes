@@ -1,0 +1,38 @@
+*** Test int16 conversion to binary string ***
+
+1000000000000000
+1111111110000000
+0
+1
+10
+1000
+1010
+10000
+1111111
+111111111111111
+
+*** Test int16 conversion to decimal string ***
+
+-32768
+-128
+0
+1
+2
+8
+10
+16
+127
+32767
+
+*** Test int16 conversion to hexadecimal string ***
+
+8000
+ff80
+0
+1
+2
+8
+a
+10
+7f
+7fff

@@ -671,9 +671,9 @@ to_decimal_string(U) =
     to_binary_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // NOTE: C# does not provide a format provider for ulong here, so we
-    // need to cast U to a long.  The binary representation will be the
-    // same in either case.
+    // NOTE: C# does not define a format provider for ulong, so we need to cast
+    // U to a long here.  The binary representation will be the same in either
+    // case.
     S = System.Convert.ToString((long)U, 2);
 ").
 
@@ -722,6 +722,10 @@ num_zeros(U) = 64 - num_ones(U).
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
+/* On LP64 systems sizeof(uint64_t) == sizeof(unsigned long). */
+#if (defined(MR_GNUC) || defined(MR_CLANG)) && defined(__LP64__)
+    N = __builtin_popcountl(U);
+#else
     U = U - ((U >> 1) & UINT64_C(0x5555555555555555));
     U = (U & UINT64_C(0x3333333333333333)) + ((U >> 2) & UINT64_C(0x3333333333333333));
     U = (U + (U >> 4)) & UINT64_C(0x0f0f0f0f0f0f0f0f);
@@ -729,6 +733,7 @@ num_zeros(U) = 64 - num_ones(U).
     U = U + (U >> 16);
     U = U + (U >> 32);
     N = U & UINT64_C(0x7f);
+#endif
 ").
 
 :- pragma foreign_proc("C#",
@@ -847,6 +852,9 @@ num_zeros(U) = 64 - num_ones(U).
     reverse_bytes(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
+#if defined(MR_GNUC) || defined(MR_CLANG)
+    B = __builtin_bswap64(A);
+#else
     B = (A & UINT64_C(0x00000000000000ff)) << 56 |
         (A & UINT64_C(0x000000000000ff00)) << 40 |
         (A & UINT64_C(0x0000000000ff0000)) << 24 |
@@ -855,6 +863,7 @@ num_zeros(U) = 64 - num_ones(U).
         (A & UINT64_C(0x0000ff0000000000)) >> 24 |
         (A & UINT64_C(0x00ff000000000000)) >> 40 |
         (A & UINT64_C(0xff00000000000000)) >> 56;
+#endif
 ").
 
 :- pragma foreign_proc("C#",
