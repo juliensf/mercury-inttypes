@@ -26,6 +26,8 @@
 main(!IO) :-
     run_to_string_test(to_binary_string, "binary", !IO),
     io.nl(!IO),
+    run_to_string_test(to_binary_string_lz, "binary (with leading zeros)", !IO),
+    io.nl(!IO),
     run_to_string_test(to_decimal_string, "decimal", !IO),
     io.nl(!IO),
     run_to_string_test(to_hex_string, "hexadecimal", !IO).

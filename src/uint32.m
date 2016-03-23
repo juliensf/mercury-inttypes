@@ -104,6 +104,8 @@
 
 :- func to_binary_string(uint32::in) = (string::uo) is det.
 
+:- func to_binary_string_lz(uint32::in) = (string::uo) is det.
+
 :- func to_decimal_string(uint32::in) = (string::uo) is det.
 
 :- func to_hex_string(uint32::in) = (string::uo) is det.
@@ -692,6 +694,38 @@ to_decimal_string(U) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Integer.toBinaryString(U);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    int i = 32;
+
+    MR_allocate_aligned_string_msg(S, 32, MR_ALLOC_ID);
+    S[32] = '\\0';
+    while (i >= 0) {
+        i--;
+        S[i] = (U & 1) ? '1' : '0';
+        U = U >> 1;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = System.Convert.ToString(U, 2).PadLeft(32, '0');
+").
+
+:- pragma foreign_proc("Java",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = java.lang.String.format(""%32s"",
+        java.lang.Integer.toBinaryString(U)).replace(' ', '0');
 ").
 
 %---------------------------------------------------------------------------%
