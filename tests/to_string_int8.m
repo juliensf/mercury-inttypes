@@ -26,6 +26,8 @@
 main(!IO) :-
     run_to_string_test(to_binary_string, "binary", !IO),
     io.nl(!IO),
+    run_to_string_test(to_binary_string_lz, "binary (with leading zeros)", !IO),
+    io.nl(!IO),
     run_to_string_test(to_decimal_string, "decimal", !IO),
     io.nl(!IO),
     run_to_string_test(to_hex_string, "hexadecimal", !IO).
@@ -48,6 +50,12 @@ run_to_string_test_2(ConvFunc, N, !IO) :-
 
 numbers = [
     int8.min_int8,
+    -int8.max_int8,
+    -int8.sixteen,
+    -int8.ten,
+    -int8.eight,
+    -int8.two,
+    -int8.one,
     int8.zero,
     int8.one,
     int8.two,

@@ -71,8 +71,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 15].
+    %
 :- func uint16 << int = uint16.
 
+    % A >> B:
+    % Aborts if B is not in [0, 15].
+    %
 :- func uint16 >> int = uint16.
 
 :- func unchecked_left_shift(uint16, int) = uint16.
@@ -490,8 +496,8 @@ A / B =
 %
 
 A << B =
-    ( if B < 0
-    then func_error("uint16.'<<': amount to shift by is negative")
+    ( if (B < 0 ; B > 15)
+    then func_error("uint16.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -517,8 +523,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("uint16.'>>': amount to shift by is negative")
+    ( if (B < 0 ; B > 15)
+    then func_error("uint16.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 

@@ -87,8 +87,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 31].
+    %
 :- func int32 << int = int32.
 
+    % A >> B:
+    % Aborts if B is not in [0, 31].
+    %
 :- func int32 >> int = int32.
 
 :- func unchecked_left_shift(int32, int) = int32.
@@ -113,6 +119,8 @@
 :- func to_string(int32::in) = (string::uo) is det.
 
 :- func to_binary_string(int32::in) = (string::uo) is det.
+
+:- func to_binary_string_lz(int32::in) = (string::uo) is det.
 
 :- func to_decimal_string(int32::in) = (string::uo) is det.
 
@@ -139,6 +147,18 @@
     % N is the number of trailing zeros in the binary representation of I.
     %
 :- func num_trailing_zeros(int32) = int.
+
+    % reverse_bytes(A) = B:
+    % B is the value that results from reversing the bytes in the
+    % representation of A.
+    %
+:- func reverse_bytes(int32) = int32.
+
+    % reverse_bits(A) = B:
+    % B is the is value that results from reversing the bits in the
+    % representation of A.
+    %
+:- func reverse_bits(int32) = int32.
 
 %---------------------------------------------------------------------------%
 %
@@ -587,8 +607,8 @@ abs(I) = ( if I < int32.zero then int32.zero - I else I ).
 %
 
 A << B =
-    ( if B < 0
-    then func_error("int32.'<<': amount to shift by is negative")
+    ( if ( B < 0 ; B > 31)
+    then func_error("int32.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -614,8 +634,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("int32.'>>': amount to shift by is negative")
+    ( if ( B < 0 ; B > 31)
+    then func_error("int32.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -800,6 +820,39 @@ to_decimal_string(U) =
 %---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
+    to_binary_string_lz(I::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    int i = 32;
+    uint32_t U = I;
+
+    MR_allocate_aligned_string_msg(S, 32, MR_ALLOC_ID);
+    S[32] = '\\0';
+    while (i >= 0) {
+        i--;
+        S[i] = (U & 1) ? '1' : '0';
+        U = U >> 1;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = System.Convert.ToString(U, 2).PadLeft(32, '0');
+").
+
+:- pragma foreign_proc("Java",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = java.lang.String.format(""%32s"",
+        java.lang.Integer.toBinaryString(U)).replace(' ', '0');
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
     to_hex_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
@@ -948,6 +1001,75 @@ num_zeros(U) = 32 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     N = java.lang.Integer.numberOfTrailingZeros(U);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+#if defined(MR_GNUC) || defined(MR_CLANG)
+    B = (int32_t) __builtin_bswap32(A);
+#else
+    uint32_t u_A = A;
+    B = (u_A & UINT32_C(0x000000ff)) << 24 |
+        (u_A & UINT32_C(0x0000ff00)) << 8  |
+        (u_A & UINT32_C(0x00ff0000)) >> 8  |
+        (u_A & UINT32_C(0xff000000)) >> 24;
+#endif
+").
+
+:- pragma foreign_proc("C#",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    uint u_A = (uint) A;
+
+    B = (int) ((u_A & 0x000000ffU) << 24 | (u_A & 0x0000ff00U) << 8 |
+         (u_A & 0x00ff0000U) >> 8  | (u_A & 0xff000000U) >> 24);
+").
+
+:- pragma foreign_proc("Java",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Integer.reverseBytes(A);
+").
+
+:- pragma foreign_proc("C",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    uint32_t u_A = A;
+
+    u_A = (u_A & UINT32_C(0x55555555)) << 1 | (u_A >> 1) & UINT32_C(0x55555555);
+    u_A = (u_A & UINT32_C(0x33333333)) << 2 | (u_A >> 2) & UINT32_C(0x33333333);
+    u_A = (u_A & UINT32_C(0x0f0f0f0f)) << 4 | (u_A >> 4) & UINT32_C(0x0f0f0f0f);
+    u_A = (u_A << 24) | ((u_A & UINT32_C(0xff00)) << 8) |
+                    ((u_A >> 8) & UINT32_C(0xff00)) | (u_A >> 24);
+    B = (int32_t) u_A;
+").
+
+:- pragma foreign_proc("C#",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    uint u_A = (uint) A;
+
+    u_A = (u_A & 0x55555555) << 1 | (u_A >> 1) & 0x55555555;
+    u_A = (u_A & 0x33333333) << 2 | (u_A >> 2) & 0x33333333;
+    u_A = (u_A & 0x0f0f0f0f) << 4 | (u_A >> 4) & 0x0f0f0f0f;
+    u_A = (u_A << 24) | ((u_A & 0xff00) << 8) | ((u_A >> 8) & 0xff00) | (u_A >> 24);
+
+    B = (int) u_A;
+").
+
+:- pragma foreign_proc("Java",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Integer.reverse(A);
 ").
 
 %---------------------------------------------------------------------------%

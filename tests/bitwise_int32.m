@@ -54,12 +54,13 @@ run_unop_test_2(UnOpFunc, Desc, A, !IO) :-
     ( try []
         Result0 = UnOpFunc(A)
     then
-        ResultStr = to_binary_string(Result0)
+        ResultStr = "0b" ++ to_binary_string_lz(Result0)
     catch_any _ ->
         ResultStr = "<<exception>>"
     ),
-    io.format("%s %s = %s\n",
-        [s(Desc), s(to_binary_string(A)), s(ResultStr)], !IO).
+    io.format("%s 0b%s =\n  %s\n",
+        [s(Desc), s(to_binary_string_lz(A)), s(ResultStr)], !IO),
+    io.nl(!IO).
 
 %---------------------------------------------------------------------------%
 
@@ -85,13 +86,14 @@ run_binop_test_3(BinOpFunc, Desc, A, B, !IO) :-
     ( try []
         Result0 = BinOpFunc(A, B)
     then
-        ResultStr = to_binary_string(Result0)
+        ResultStr = "0b" ++ to_binary_string_lz(Result0)
     catch_any _ ->
         ResultStr = "<<exception>>"
     ),
-    io.format("%s %s %s = %s\n",
-        [s(to_binary_string(A)), s(Desc),
-        s(to_binary_string(B)), s(ResultStr)], !IO).
+    io.format("0b%s %s\n0b%s =\n%s\n",
+        [s(to_binary_string_lz(A)), s(Desc),
+        s(to_binary_string_lz(B)), s(ResultStr)], !IO),
+    io.nl(!IO).
 
 %---------------------------------------------------------------------------%
 
@@ -117,12 +119,13 @@ run_shift_test_3(ShiftOpFunc, Desc, A, B, !IO) :-
     ( try []
         Result0 = ShiftOpFunc(A, B)
     then
-        ResultStr = to_binary_string(Result0)
+        ResultStr = "0b" ++ to_binary_string_lz(Result0)
     catch_any _ ->
         ResultStr = "<<exception>>"
     ),
-    io.format("%s %s %d = %s\n",
-        [s(to_binary_string(A)), s(Desc), i(B), s(ResultStr)], !IO).
+    io.format("0b%s %s %d =\n%s\n",
+        [s(to_binary_string_lz(A)), s(Desc), i(B), s(ResultStr)], !IO),
+    io.nl(!IO).
 
 %---------------------------------------------------------------------------%
 
@@ -155,6 +158,7 @@ shift_amounts = [
     8,
     16,
     24,
+    31,
     32,
     36
 ].

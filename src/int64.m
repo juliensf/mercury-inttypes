@@ -82,8 +82,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 63].
+    %
 :- func int64 << int = int64.
 
+    % A >> B:
+    % Aborts if B is not in [0, 63].
+    %
 :- func int64 >> int = int64.
 
 :- func unchecked_left_shift(int64, int) = int64.
@@ -108,6 +114,8 @@
 :- func to_string(int64::in) = (string::uo) is det.
 
 :- func to_binary_string(int64::in) = (string::uo) is det.
+
+:- func to_binary_string_lz(int64::in) = (string::uo) is det.
 
 :- func to_decimal_string(int64::in) = (string::uo) is det.
 
@@ -134,6 +142,10 @@
     % N is the number of trailing zeros in the binary representation of I.
     %
 :- func num_trailing_zeros(int64) = int.
+
+:- func reverse_bytes(int64) = int64.
+
+:- func reverse_bits(int64) = int64.
 
 %---------------------------------------------------------------------------%
 %
@@ -567,8 +579,8 @@ abs(I) = ( if I < int64.zero then int64.zero - I else I ).
 %
 
 A << B =
-    ( if B < 0
-    then func_error("int64.'<<': second argument is negative")
+    ( if ( B < 0 ; B > 63)
+    then func_error("int64.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -594,8 +606,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("int64.'>>': second argument is negative")
+    ( if ( B < 0 ; B > 63 )
+    then func_error("int64.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -735,7 +747,6 @@ to_decimal_string(I) =
 
 %---------------------------------------------------------------------------%
 
-
 :- pragma foreign_proc("C",
     to_binary_string(I::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -776,6 +787,39 @@ to_decimal_string(I) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Long.toBinaryString(I);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_binary_string_lz(I::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    int i = 64;
+    uint64_t U = I;
+
+    MR_allocate_aligned_string_msg(S, 64, MR_ALLOC_ID);
+    S[64] = '\\0';
+    while (i >= 0) {
+        i--;
+        S[i] = (U & 1) ? '1' : '0';
+        U = U >> 1;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_binary_string_lz(I::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = System.Convert.ToString(I, 2).PadLeft(64, '0');
+").
+
+:- pragma foreign_proc("Java",
+    to_binary_string_lz(I::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = java.lang.String.format(""%64s"",
+        java.lang.Long.toBinaryString(I)).replace(' ', '0');
 ").
 
 %---------------------------------------------------------------------------%
@@ -935,6 +979,88 @@ num_zeros(U) = 64 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     N = java.lang.Long.numberOfTrailingZeros(U);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+#if defined(MR_GNUC) || defined(MR_CLANG)
+    B = (int64_t) __builtin_bswap64(A);
+#else
+    uint64_t u_A = A;
+
+    B = (int64_t) (
+        (u_A & UINT64_C(0x00000000000000ff)) << 56 |
+        (u_A & UINT64_C(0x000000000000ff00)) << 40 |
+        (u_A & UINT64_C(0x0000000000ff0000)) << 24 |
+        (u_A & UINT64_C(0x00000000ff000000)) << 8  |
+        (u_A & UINT64_C(0x000000ff00000000)) >> 8  |
+        (u_A & UINT64_C(0x0000ff0000000000)) >> 24 |
+        (u_A & UINT64_C(0x00ff000000000000)) >> 40 |
+        (u_A & UINT64_C(0xff00000000000000)) >> 56);
+#endif
+").
+
+:- pragma foreign_proc("C#",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    ulong u_A = (ulong) A;
+
+    B = (long) (
+        (u_A & 0x00000000000000ffUL) << 56 |
+        (u_A & 0x000000000000ff00UL) << 40 |
+        (u_A & 0x0000000000ff0000UL) << 24 |
+        (u_A & 0x00000000ff000000UL) << 8  |
+        (u_A & 0x000000ff00000000UL) >> 8  |
+        (u_A & 0x0000ff0000000000UL) >> 24 |
+        (u_A & 0x00ff000000000000UL) >> 40 |
+        (u_A & 0xff00000000000000UL) >> 56);
+").
+
+:- pragma foreign_proc("Java",
+    reverse_bytes(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Long.reverseBytes(A);
+").
+
+:- pragma foreign_proc("C",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    uint64_t u_A = A;
+    u_A = (u_A & UINT64_C(0x5555555555555555)) << 1 | (u_A >> 1) & UINT64_C(0x5555555555555555);
+    u_A = (u_A & UINT64_C(0x3333333333333333)) << 2 | (u_A >> 2) & UINT64_C(0x3333333333333333);
+    u_A = (u_A & UINT64_C(0x0f0f0f0f0f0f0f0f)) << 4 | (u_A >> 4) & UINT64_C(0x0f0f0f0f0f0f0f0f);
+    u_A = (u_A & UINT64_C(0x00ff00ff00ff00ff)) << 8 | (u_A >> 8) & UINT64_C(0x00ff00ff00ff00ff);
+    u_A = (u_A << 48) | ((u_A & UINT64_C(0xffff0000)) << 16) |
+                    ((u_A >> 16) & UINT64_C(0xffff0000)) | (u_A >> 48);
+    B = (int64_t) u_A;
+").
+
+:- pragma foreign_proc("C#",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    ulong u_A = (ulong) A;
+    u_A = (u_A & 0x5555555555555555UL) << 1 | (u_A >> 1) & 0x5555555555555555UL;
+    u_A = (u_A & 0x3333333333333333UL) << 2 | (u_A >> 2) & 0x3333333333333333UL;
+    u_A = (u_A & 0x0f0f0f0f0f0f0f0fUL) << 4 | (u_A >> 4) & 0x0f0f0f0f0f0f0f0fUL;
+    u_A = (u_A & 0x00ff00ff00ff00ffUL) << 8 | (u_A >> 8) & 0x00ff00ff00ff00ffUL;
+    u_A = (u_A << 48) | ((u_A & 0xffff0000UL) << 16) |
+                    ((u_A >> 16) & 0xffff0000UL) | (u_A >> 48);
+    B = (long) u_A;
+").
+
+:- pragma foreign_proc("Java",
+    reverse_bits(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = java.lang.Long.reverse(A);
 ").
 
 %---------------------------------------------------------------------------%

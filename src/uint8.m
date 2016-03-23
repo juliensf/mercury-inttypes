@@ -71,8 +71,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 7].
+    %
 :- func uint8 << int = uint8.
 
+    % A >> B:
+    % Aborts if B is not in [0, 7].
+    %
 :- func uint8 >> int = uint8.
 
 :- func unchecked_left_shift(uint8, int) = uint8.
@@ -97,6 +103,8 @@
 :- func to_string(uint8::in) = (string::uo) is det.
 
 :- func to_binary_string(uint8::in) = (string::uo) is det.
+
+:- func to_binary_string_lz(uint8::in) = (string::uo) is det.
 
 :- func to_decimal_string(uint8::in) = (string::uo) is det.
 
@@ -135,7 +143,7 @@
 % Constants.
 %
 
-:- func max_uint8 = uint8.     % 0xff.
+:- func max_uint8 = uint8.
 
 :- func zero = uint8.
 :- func one = uint8.
@@ -483,8 +491,8 @@ A / B =
 %
 
 A << B =
-    ( if B < 0
-    then func_error("uint8.'<<': amount to shift by is negative")
+    ( if (B < 0 ; B > 7)
+    then func_error("uint8.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -510,8 +518,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("uint8.'>>': amount to shift by is negative")
+    ( if (B < 0 ; B > 7)
+    then func_error("uint8.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -651,7 +659,6 @@ to_decimal_string(U) =
 
 %---------------------------------------------------------------------------%
 
-
 :- pragma foreign_proc("C",
     to_binary_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -694,6 +701,38 @@ to_decimal_string(U) =
 %---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    int i = 8;
+
+    MR_allocate_aligned_string_msg(S, 8, MR_ALLOC_ID);
+    S[8] = '\\0';
+    while (i >= 0) {
+        i--;
+        S[i] = (U & 1) ? '1' : '0';
+        U = U >> 1;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = System.Convert.ToString(U, 2).PadLeft(8, '0');
+").
+
+:- pragma foreign_proc("Java",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = java.lang.String.format(""%8s"",
+        java.lang.Integer.toBinaryString(U & 0xff)).replace(' ', '0');
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
     to_hex_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
@@ -721,11 +760,11 @@ to_decimal_string(U) =
 
 num_zeros(U) = 8 - num_ones(U).
 
-:- pragma foreign_decl("C", "const uint8_t MITS_uint_num_ones[];").
+:- pragma foreign_decl("C", "const uint8_t MITS_uint_num_ones_table[];").
 
 :- pragma foreign_code("C", "
 
-const uint8_t MITS_uint8_num_ones[256] = {
+const uint8_t MITS_uint8_num_ones_table[256] = {
     0,1,1,2,1,2,2,3,
     1,2,2,3,2,3,3,4,
     1,2,2,3,2,3,3,4,
@@ -765,7 +804,7 @@ const uint8_t MITS_uint8_num_ones[256] = {
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    N = MITS_uint_num_ones[U];
+    N = MITS_uint_num_ones_table[U];
 ").
 
 :- pragma foreign_proc("C#",
@@ -782,11 +821,11 @@ const uint8_t MITS_uint8_num_ones[256] = {
     N = java.lang.Integer.bitCount(U << 24);
 ").
 
-:- pragma foreign_decl("C", "extern const uint8_t MITS_uint8_nlz[];").
+:- pragma foreign_decl("C", "extern const uint8_t MITS_uint8_nlz_table[];").
 
 :- pragma foreign_code("C", "
 
-const uint8_t MITS_uint8_nlz[256] = {
+const uint8_t MITS_uint8_nlz_table[256] = {
   8,7,6,6,5,5,5,5,
   4,4,4,4,4,4,4,4,
   3,3,3,3,3,3,3,3,
@@ -827,7 +866,7 @@ const uint8_t MITS_uint8_nlz[256] = {
     num_leading_zeros(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    N = MITS_uint8_nlz[I];
+    N = MITS_uint8_nlz_table[I];
 ").
 
 :- pragma foreign_proc("C#",

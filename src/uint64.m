@@ -71,8 +71,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 63].
+    %
 :- func uint64 << int = uint64.
 
+    % A >> B:
+    % Aborts if B is not in [0, 63].
+    %
 :- func uint64 >> int = uint64.
 
 :- func unchecked_left_shift(uint64, int) = uint64.
@@ -133,10 +139,10 @@
 % Constants.
 %
 
-:- func max_uint8 = uint64.     % 0xff.
-:- func max_uint16 = uint64.    % 0xffff.
-:- func max_uint32 = uint64.    % 0xffffffff.
-:- func max_uint64 = uint64.    % 0xffffffffffffffff.
+:- func max_uint8 = uint64.
+:- func max_uint16 = uint64.
+:- func max_uint32 = uint64.
+:- func max_uint64 = uint64.
 
 :- func zero = uint64.
 :- func one = uint64.
@@ -473,8 +479,8 @@ A / B =
 %
 
 A << B =
-    ( if B < 0
-    then func_error("uint64.'<<': second argument is negative")
+    ( if (B < 0 ; B > 63)
+    then func_error("uint64.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -500,8 +506,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("uint64.'>>': second argument is negative")
+    ( if (B < 0 ; B > 63)
+    then func_error("uint64.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -723,6 +729,9 @@ num_zeros(U) = 64 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
 /* On LP64 systems sizeof(uint64_t) == sizeof(unsigned long). */
+/* XXX should also use __builtin_popcountl on 32-bit platforms where
+** sizeof(long) == 8.   And __builtin_popcountll on Windows.
+*/
 #if (defined(MR_GNUC) || defined(MR_CLANG)) && defined(__LP64__)
     N = __builtin_popcountl(U);
 #else

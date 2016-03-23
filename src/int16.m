@@ -86,8 +86,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 15].
+    %
 :- func int16 << int = int16.
 
+    % A >> B:
+    % Aborts if B is not in [0, 15].
+    %
 :- func int16 >> int = int16.
 
 :- func unchecked_left_shift(int16, int) = int16.
@@ -112,6 +118,8 @@
 :- func to_string(int16::in) = (string::uo) is det.
 
 :- func to_binary_string(int16::in) = (string::uo) is det.
+
+:- func to_binary_string_lz(int16::in) = (string::uo) is det.
 
 :- func to_decimal_string(int16::in) = (string::uo) is det.
 
@@ -604,8 +612,8 @@ abs(I) = ( if I < int16.zero then int16.zero - I else I ).
 %
 
 A << B =
-    ( if B < 0
-    then func_error("int16.'<<': amount to shift by is negative")
+    ( if (B < 0 ; B > 15)
+    then func_error("int16.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -631,8 +639,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("int16.'>>': amount to shift by is negative")
+    ( if (B < 0 ; B > 15)
+    then func_error("int16.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -812,6 +820,39 @@ to_decimal_string(U) =
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     S = java.lang.Integer.toBinaryString(U & 0xffff);
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_binary_string_lz(I::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    int i = 16;
+    uint16_t U = I;
+
+    MR_allocate_aligned_string_msg(S, 16, MR_ALLOC_ID);
+    S[16] = '\\0';
+    while (i >= 0) {
+        i--;
+        S[i] = (U & 1) ? '1' : '0';
+        U = U >> 1;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = System.Convert.ToString(U, 2).PadLeft(16, '0');
+").
+
+:- pragma foreign_proc("Java",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = java.lang.String.format(""%16s"",
+        java.lang.Integer.toBinaryString(U & 0xffff)).replace(' ', '0');
 ").
 
 %---------------------------------------------------------------------------%

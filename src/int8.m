@@ -113,6 +113,8 @@
 
 :- func to_binary_string(int8::in) = (string::uo) is det.
 
+:- func to_binary_string_lz(int8::in) = (string::uo) is det.
+
 :- func to_decimal_string(int8::in) = (string::uo) is det.
 
 :- func to_hex_string(int8::in) = (string::uo) is det.
@@ -596,8 +598,8 @@ abs(I) = ( if I < int8.zero then int8.zero - I else I ).
 %
 
 A << B =
-    ( if B < 0
-    then func_error("int8.'<<': amount to shift by is negative")
+    ( if (B < 0 ; B > 7)
+    then func_error("int8.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -623,8 +625,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("int8.'>>': amount to shift by is negative")
+    ( if (B < 0 ; B > 7)
+    then func_error("int8.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -809,6 +811,39 @@ to_decimal_string(U) =
 %---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
+    to_binary_string_lz(I::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    int i = 8;
+    uint8_t U = I;
+
+    MR_allocate_aligned_string_msg(S, 8, MR_ALLOC_ID);
+    S[8] = '\\0';
+    while (i >= 0) {
+        i--;
+        S[i] = (U & 1) ? '1' : '0';
+        U = U >> 1;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = System.Convert.ToString((byte)U, 2).PadLeft(8, '0');
+").
+
+:- pragma foreign_proc("Java",
+    to_binary_string_lz(U::in) = (S::uo),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    S = java.lang.String.format(""%8s"",
+        java.lang.Integer.toBinaryString(U & 0xff)).replace(' ', '0');
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
     to_hex_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
@@ -918,6 +953,7 @@ num_zeros(U) = 16 - num_ones(U).
     num_trailing_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
+    // U.
     N = 0; // XXX NYI.
 ").
 
@@ -925,6 +961,7 @@ num_zeros(U) = 16 - num_ones(U).
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
+    // B.
     B = A; // XXX NYI.
 ").
 
@@ -932,6 +969,7 @@ num_zeros(U) = 16 - num_ones(U).
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
+    // B.
     B = 0;  // XXX NYI.
 ").
 
@@ -939,6 +977,7 @@ num_zeros(U) = 16 - num_ones(U).
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
+    // A.
     B = 0; // XXX NYI.
 ").
 

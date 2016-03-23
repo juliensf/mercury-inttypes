@@ -71,8 +71,14 @@
 % Bitwise operations.
 %
 
+    % A << B:
+    % Aborts if B is not in [0, 31].
+    %
 :- func uint32 << int = uint32.
 
+    % A >> B:
+    % Aborts if B is not in [0, 31].
+    %
 :- func uint32 >> int = uint32.
 
 :- func unchecked_left_shift(uint32, int) = uint32.
@@ -143,9 +149,9 @@
 % Constants.
 %
 
-:- func max_uint8 = uint32.     % 0xff.
-:- func max_uint16 = uint32.    % 0xffff.
-:- func max_uint32 = uint32.    % Oxffffffff.
+:- func max_uint8 = uint32.
+:- func max_uint16 = uint32.
+:- func max_uint32 = uint32.
 
 :- func zero = uint32.
 :- func one = uint32.
@@ -472,9 +478,7 @@ A / B =
     unchecked_quotient(A::in, B::in) = (C::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    long l_A = A & 0xffffffffL;
-    long l_B = B & 0xffffffffL;
-    C = (int) (l_A / l_B);
+    C = (int) ((A & 0xffffffffL) / (B & 0xffffffffL));
 ").
 
 %---------------------------------------------------------------------------%
@@ -483,8 +487,8 @@ A / B =
 %
 
 A << B =
-    ( if B < 0
-    then func_error("uint32.'<<': amount to shift by is negative")
+    ( if (B < 0 ; B > 31)
+    then func_error("uint32.'<<': second operand is out of range")
     else unchecked_left_shift(A, B)
     ).
 
@@ -510,8 +514,8 @@ A << B =
 ").
 
 A >> B =
-    ( if B < 0
-    then func_error("uint32.'>>': amount to shift by is negative")
+    ( if (B < 0 ; B > 31)
+    then func_error("uint32.'>>': second operand is out of range")
     else unchecked_right_shift(A, B)
     ).
 
@@ -643,8 +647,7 @@ A >> B =
     to_string(U::in) = (S::uo),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    long l_U = U & 0xffffffffL;
-    S = java.lang.Long.toString(l_U);
+    S = java.lang.Long.toString(U & 0xffffffffL);
 ").
 
 to_decimal_string(U) =
