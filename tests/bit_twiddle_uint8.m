@@ -27,8 +27,8 @@
 main(!IO) :-
     %run_twiddle_test(uint8.num_zeros, "num_zeros", !IO),
     %io.nl(!IO),
-    %run_twiddle_test(uint8.num_ones, "num_ones", !IO),
-    %io.nl(!IO),
+    run_twiddle_test(uint8.num_ones, "num_ones", !IO),
+    io.nl(!IO),
     %run_twiddle_test(uint8.num_leading_zeros, "num_leading_zeros", !IO),
     %io.nl(!IO),
     %run_twiddle_test(uint8.num_trailing_zeros, "num_trailing_zeros", !IO),
@@ -58,8 +58,8 @@ run_twiddle_test_2(Func, Desc, A, !IO) :-
     catch_any _ ->
         ResultStr = "<<exception>>"
     ),
-    io.format("%s(%s) = %s\n",
-        [s(Desc), s(to_decimal_string(A)), s(ResultStr)], !IO).
+    io.format("%s(0b%s) = %s\n",
+        [s(Desc), s(to_binary_string_lz(A)), s(ResultStr)], !IO).
 
 %---------------------------------------------------------------------------%
 
@@ -97,6 +97,7 @@ numbers = [
     uint8.two,
     uint8.eight,
     uint8.ten,
+    uint8(15),
     uint8.sixteen,
     uint8.max_uint8
 ].

@@ -804,14 +804,53 @@ const uint8_t MITS_uint8_num_ones_table[256] = {
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    N = MITS_uint_num_ones_table[U];
+    N = MITS_uint8_num_ones_table[U];
+").
+
+:- pragma foreign_code("C#", "
+
+public static byte[] num_ones_table = {
+    0,1,1,2,1,2,2,3,
+    1,2,2,3,2,3,3,4,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    4,5,5,6,5,6,6,7,
+    5,6,6,7,6,7,7,8
+};
+
 ").
 
 :- pragma foreign_proc("C#",
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    N = 0; // XXX NYI.
+    N = mercury.uint8.num_ones_table[U];
 ").
 
 :- pragma foreign_proc("Java",

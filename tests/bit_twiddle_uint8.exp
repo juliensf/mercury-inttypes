@@ -1,3 +1,14 @@
+*** Test function 'num_ones' ***
+
+num_ones(0b00000000) = 0
+num_ones(0b00000001) = 1
+num_ones(0b00000010) = 1
+num_ones(0b00001000) = 1
+num_ones(0b00001010) = 2
+num_ones(0b00001111) = 4
+num_ones(0b00010000) = 1
+num_ones(0b11111111) = 8
+
 *** Test function 'reverse_bits' ***
 
 reverse_bits(0b00000000) = 0b00000000
@@ -5,5 +16,6 @@ reverse_bits(0b00000001) = 0b10000000
 reverse_bits(0b00000010) = 0b01000000
 reverse_bits(0b00001000) = 0b00010000
 reverse_bits(0b00001010) = 0b01010000
+reverse_bits(0b00001111) = 0b11110000
 reverse_bits(0b00010000) = 0b00001000
 reverse_bits(0b11111111) = 0b11111111
