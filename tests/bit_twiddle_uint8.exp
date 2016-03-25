@@ -1,9 +1,9 @@
 *** Test function 'reverse_bits' ***
 
-reverse_bits(0) = 0
-reverse_bits(1) = 10000000
-reverse_bits(10) = 1000000
-reverse_bits(1000) = 10000
-reverse_bits(1010) = 1010000
-reverse_bits(10000) = 1000
-reverse_bits(11111111) = 11111111
+reverse_bits(0b00000000) = 0b00000000
+reverse_bits(0b00000001) = 0b10000000
+reverse_bits(0b00000010) = 0b01000000
+reverse_bits(0b00001000) = 0b00010000
+reverse_bits(0b00001010) = 0b01010000
+reverse_bits(0b00010000) = 0b00001000
+reverse_bits(0b11111111) = 0b11111111

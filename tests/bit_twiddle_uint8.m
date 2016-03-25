@@ -80,12 +80,12 @@ run_twiddle_test_b_2(Func, Desc, A, !IO) :-
     ( try []
         Result0 = Func(A)
     then
-        ResultStr = to_binary_string(Result0)
+        ResultStr = "0b" ++ to_binary_string_lz(Result0)
     catch_any _ ->
         ResultStr = "<<exception>>"
     ),
-    io.format("%s(%s) = %s\n",
-        [s(Desc), s(to_binary_string(A)), s(ResultStr)], !IO).
+    io.format("%s(0b%s) = %s\n",
+        [s(Desc), s(to_binary_string_lz(A)), s(ResultStr)], !IO).
 
 %---------------------------------------------------------------------------%
 
