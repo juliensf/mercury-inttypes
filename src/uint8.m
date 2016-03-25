@@ -16,6 +16,9 @@
 :- type uint8.
 
 %---------------------------------------------------------------------------%
+%
+% Conversion.
+%
 
     % from_int(A, B):
     % Fails if A is not in [0, uint8.max_uint8].
@@ -29,6 +32,8 @@
     % A synonym for the function det_from_int/1.
     %
 :- func uint8(int) = uint8.
+
+:- func to_int(uint8) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -294,6 +299,29 @@ det_from_int(I) = U :-
     then U = U0
     else error("uint8.det_from_int: cannot convert int to uint8")
     ).
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("C#",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("Java",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
 
 %---------------------------------------------------------------------------%
 
@@ -907,53 +935,100 @@ const uint8_t MITS_uint8_nlz_table[256] = {
 "
     N = MITS_uint8_nlz_table[I];
 ").
+:- pragma foreign_code("C#", "
+
+public static byte[] nlz_table = {
+  8,7,6,6,5,5,5,5,
+  4,4,4,4,4,4,4,4,
+  3,3,3,3,3,3,3,3,
+  3,3,3,3,3,3,3,3,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0
+};
+
+").
 
 :- pragma foreign_proc("C#",
     num_leading_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    if (U == 0) {
-        N = 8;
-    } else {
-        N = 0; // XXX NYI.
-    }
+    N = mercury.uint8.nlz_table[U];
+").
+
+:- pragma foreign_code("Java", "
+
+public static byte[] nlz_table = {
+  8,7,6,6,5,5,5,5,
+  4,4,4,4,4,4,4,4,
+  3,3,3,3,3,3,3,3,
+  3,3,3,3,3,3,3,3,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0
+};
+
 ").
 
 :- pragma foreign_proc("Java",
     num_leading_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    N = 0; // XXX NYI.
+    N = jmercury.uint8.nlz_table[U & 0xff];
 ").
 
-:- pragma foreign_proc("C",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
-"
-    if (U == 0) {
-        N = 8;
-    } else {
-        N = 0; // XXX NYI.
-    }
-").
-
-:- pragma foreign_proc("C#",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    if (U == 0) {
-        N = 8;
-    } else {
-        N = 0; // XXX NYI.
-    }
-").
-
-:- pragma foreign_proc("Java",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    N = 0; // XXX NYI.
-").
+num_trailing_zeros(U) =
+    8 - num_leading_zeros(\ U /\ (U - one)).
 
 :- pragma foreign_proc("C",
     reverse_bits(A::in) = (B::out),

@@ -25,14 +25,14 @@
 %---------------------------------------------------------------------------%
 
 main(!IO) :-
-    %run_twiddle_test(uint8.num_zeros, "num_zeros", !IO),
-    %io.nl(!IO),
+    run_twiddle_test(uint8.num_zeros, "num_zeros", !IO),
+    io.nl(!IO),
     run_twiddle_test(uint8.num_ones, "num_ones", !IO),
     io.nl(!IO),
-    %run_twiddle_test(uint8.num_leading_zeros, "num_leading_zeros", !IO),
-    %io.nl(!IO),
-    %run_twiddle_test(uint8.num_trailing_zeros, "num_trailing_zeros", !IO),
-    %io.nl(!IO),
+    run_twiddle_test(uint8.num_leading_zeros, "num_leading_zeros", !IO),
+    io.nl(!IO),
+    run_twiddle_test(uint8.num_trailing_zeros, "num_trailing_zeros", !IO),
+    io.nl(!IO),
     run_twiddle_test_b(uint8.reverse_bits, "reverse_bits", !IO).
 
 %---------------------------------------------------------------------------%

@@ -1,3 +1,14 @@
+*** Test function 'num_zeros' ***
+
+num_zeros(0b00000000) = 8
+num_zeros(0b00000001) = 7
+num_zeros(0b00000010) = 7
+num_zeros(0b00001000) = 7
+num_zeros(0b00001010) = 6
+num_zeros(0b00001111) = 4
+num_zeros(0b00010000) = 7
+num_zeros(0b11111111) = 0
+
 *** Test function 'num_ones' ***
 
 num_ones(0b00000000) = 0
@@ -8,6 +19,28 @@ num_ones(0b00001010) = 2
 num_ones(0b00001111) = 4
 num_ones(0b00010000) = 1
 num_ones(0b11111111) = 8
+
+*** Test function 'num_leading_zeros' ***
+
+num_leading_zeros(0b00000000) = 8
+num_leading_zeros(0b00000001) = 7
+num_leading_zeros(0b00000010) = 6
+num_leading_zeros(0b00001000) = 4
+num_leading_zeros(0b00001010) = 4
+num_leading_zeros(0b00001111) = 4
+num_leading_zeros(0b00010000) = 3
+num_leading_zeros(0b11111111) = 0
+
+*** Test function 'num_trailing_zeros' ***
+
+num_trailing_zeros(0b00000000) = 8
+num_trailing_zeros(0b00000001) = 0
+num_trailing_zeros(0b00000010) = 1
+num_trailing_zeros(0b00001000) = 3
+num_trailing_zeros(0b00001010) = 1
+num_trailing_zeros(0b00001111) = 0
+num_trailing_zeros(0b00010000) = 4
+num_trailing_zeros(0b11111111) = 0
 
 *** Test function 'reverse_bits' ***
 
