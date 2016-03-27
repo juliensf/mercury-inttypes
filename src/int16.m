@@ -951,58 +951,54 @@ num_zeros(U) = 16 - num_ones(U).
 %---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
-    num_leading_zeros(U::in) = (N::out),
+    num_leading_zeros(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    // U.
-    N = 0; // XXX NYI.
-").
-
-:- pragma foreign_proc("C#",
-    num_leading_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
+    uint16_t U = I;
     if (U == 0) {
         N = 16;
     } else {
-        N = 0; // XXX NYI.
+        int n = 1;
+        if ((U >> 8) == 0) { n = n + 8;   U = U << 8; }
+        if ((U >> 12) == 0) { n = n + 4;  U = U << 4; }
+        if ((U >> 14) == 0) { n = n + 2;  U = U << 2; }
+        if ((U >> 15) == 0) { n = n + 1;  U = U << 1; }
+        N = n - (int)(U >> 15);
+    }
+").
+
+:- pragma foreign_proc("C#",
+    num_leading_zeros(I::in) = (N::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    ushort U = (ushort) I;
+    if (U == 0) {
+        N = 16;
+    } else {
+        int n = 1;
+        if ((U >> 8) == 0)  { n = n + 8; U = (ushort)(U << 8); }
+        if ((U >> 12) == 0) { n = n + 4; U = (ushort)(U << 4); }
+        if ((U >> 14) == 0) { n = n + 2; U = (ushort)(U << 2); }
+        if ((U >> 15) == 0) { n = n + 1; U = (ushort)(U << 1); }
+        N = n - (int)(U >> 15);
     }
 ").
 
 :- pragma foreign_proc("Java",
-    num_leading_zeros(U::in) = (N::out),
+    num_leading_zeros(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    N = 0; // XXX NYI.
+    if (I == 0) {
+        N = 16;
+    } else {
+        N = java.lang.Integer.numberOfLeadingZeros(I << 16);
+    }
 ").
 
 %---------------------------------------------------------------------------%
 
-:- pragma foreign_proc("C",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
-"
-    // U.
-    N = 0; // XXX NYI.
-").
-
-:- pragma foreign_proc("C#",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    if (U == 0) {
-        N = 16;
-    } else {
-        N = 0; // XXX NYI.
-    }
-").
-
-:- pragma foreign_proc("Java",
-    num_trailing_zeros(I::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    N = java.lang.Integer.numberOfTrailingZeros(I);
-").
+num_trailing_zeros(U) =
+    16 - num_leading_zeros(\ U /\ (U - one)).
 
 %---------------------------------------------------------------------------%
 
@@ -1031,25 +1027,37 @@ num_zeros(U) = 16 - num_ones(U).
     B = java.lang.Short.reverseBytes(A);
 ").
 
+%---------------------------------------------------------------------------%
+
 :- pragma foreign_proc("C",
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    B = A; // XXX NYI.
+    uint16_t u_A = A;
+    u_A = (((~0x5555) & u_A) >> 1) | ((0x5555 & u_A) << 1);
+    u_A = (((~0x3333) & u_A) >> 2) | ((0x3333 & u_A) << 2);
+    u_A = (((~0x0f0f) & u_A) >> 4) | ((0x0f0f & u_A) << 4);
+    u_A = (((~0x00ff) & u_A) >> 8) | ((0x00ff & u_A) << 8);
+    B = u_A;
 ").
 
 :- pragma foreign_proc("C#",
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    B = A; // XXX NYI.
+    ushort u_A = (ushort) A;
+    u_A = (ushort)((((~0x5555) & u_A) >> 1) | ((0x5555 & u_A) << 1));
+    u_A = (ushort)((((~0x3333) & u_A) >> 2) | ((0x3333 & u_A) << 2));
+    u_A = (ushort)((((~0x0f0f) & u_A) >> 4) | ((0x0f0f & u_A) << 4));
+    u_A = (ushort)((((~0x00ff) & u_A) >> 8) | ((0x00ff & u_A) << 8));
+    B = (short) u_A;
 ").
 
 :- pragma foreign_proc("Java",
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    B = 0; // XXX NYI.
+    B = (short) (java.lang.Integer.reverse(A << 16) & 0xffff);
 ").
 
 %---------------------------------------------------------------------------%

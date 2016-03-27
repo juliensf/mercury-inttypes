@@ -23,6 +23,7 @@ TESTS="
     arith_uint16
     arith_uint32
     arith_uint64
+    bit_twiddle_int8
     bit_twiddle_int16
     bit_twiddle_int32
     bit_twiddle_int64

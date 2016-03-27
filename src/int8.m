@@ -1001,82 +1001,180 @@ public static byte[] num_ones_table = {
 
 %---------------------------------------------------------------------------%
 
+:- pragma foreign_decl("C", "extern const uint8_t MITS_int8_nlz_table[];").
+
+:- pragma foreign_code("C", "
+
+const uint8_t MITS_int8_nlz_table[256] = {
+  8,7,6,6,5,5,5,5,
+  4,4,4,4,4,4,4,4,
+  3,3,3,3,3,3,3,3,
+  3,3,3,3,3,3,3,3,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0
+};
+").
+
 :- pragma foreign_proc("C",
-    num_leading_zeros(U::in) = (N::out),
+    num_leading_zeros(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    // U.
-    N = 0; // XXX NYI.
+    N = MITS_int8_nlz_table[(uint8_t)I];
+").
+
+:- pragma foreign_code("C#", "
+
+public static byte[] nlz_table = {
+  8,7,6,6,5,5,5,5,
+  4,4,4,4,4,4,4,4,
+  3,3,3,3,3,3,3,3,
+  3,3,3,3,3,3,3,3,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0
+};
+
 ").
 
 :- pragma foreign_proc("C#",
-    num_leading_zeros(U::in) = (N::out),
+    num_leading_zeros(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    if (U == 0) {
-        N = 16;
-    } else {
-        N = 0; // XXX NYI.
-    }
+    N = mercury.int8.nlz_table[(byte)I];
+").
+
+:- pragma foreign_code("Java", "
+
+public static byte[] nlz_table = {
+  8,7,6,6,5,5,5,5,
+  4,4,4,4,4,4,4,4,
+  3,3,3,3,3,3,3,3,
+  3,3,3,3,3,3,3,3,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  2,2,2,2,2,2,2,2,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0,
+  0,0,0,0,0,0,0,0
+};
+
 ").
 
 :- pragma foreign_proc("Java",
     num_leading_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // U.
-    N = 0; // XXX NYI.
+    N = jmercury.int8.nlz_table[U & 0xff];
 ").
 
-:- pragma foreign_proc("C",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
-"
-    // U.
-    N = 0; // XXX NYI.
-").
+%---------------------------------------------------------------------------%
 
-:- pragma foreign_proc("C#",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    if (U == 0) {
-        N = 8;
-    } else {
-        N = 0; // XXX NYI.
-    }
-").
+num_trailing_zeros(U) =
+    8 - num_leading_zeros(\ U /\ (U - one)).
 
-:- pragma foreign_proc("Java",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    // U.
-    N = 0; // XXX NYI.
-").
+%---------------------------------------------------------------------------%
+
 
 :- pragma foreign_proc("C",
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    // B.
-    B = A; // XXX NYI.
+    uint8_t u_A = A;
+    u_A = (u_A & 0xf0) >> 4 | (u_A & 0x0f) << 4;
+    u_A = (u_A & 0xcc) >> 2 | (u_A & 0x33) << 2;
+    u_A = (u_A & 0xaa) >> 1 | (u_A & 0x55) << 1;
+    B = u_A;
 ").
 
 :- pragma foreign_proc("C#",
     reverse_bits(A::in) = (B::out),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+    [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // A.
-    B = 0;  // XXX NYI.
+    byte u_A = (byte) A;
+    u_A = (byte) ((u_A & 0xf0) >> 4 | (u_A & 0x0f) << 4);
+    u_A = (byte) ((u_A & 0xcc) >> 2 | (u_A & 0x33) << 2);
+    u_A = (byte) ((u_A & 0xaa) >> 1 | (u_A & 0x55) << 1);
+    B = (sbyte) u_A;
 ").
 
 :- pragma foreign_proc("Java",
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // A.
-    B = 0; // XXX NYI.
+    B = (byte) (java.lang.Integer.reverse(A << 24) & 0xff);
 ").
 
 %---------------------------------------------------------------------------%
