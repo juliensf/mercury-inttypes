@@ -16,6 +16,9 @@
 :- type int8.
 
 %---------------------------------------------------------------------------%
+%
+% Conversion.
+%
 
     % from_int(A, B):
     % Fails if A is not in [0, int8.max_int8].
@@ -29,6 +32,8 @@
     % A synonym for the function det_from_int/1.
     %
 :- func int8(int) = int8.
+
+:- func to_int(int8) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -304,6 +309,29 @@ det_from_int(I) = U :-
     then U = U0
     else error("int8.det_from_int: cannot convert int to int8")
     ).
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("C#",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("Java",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
 
 %---------------------------------------------------------------------------%
 
@@ -869,39 +897,109 @@ to_decimal_string(U) =
 
 %---------------------------------------------------------------------------%
 
-% The algorithms in this section are from chapter 5 of ``Hacker's Delight''
-% by Henry S. Warren, Jr.
-% (Java uses the same.)
+num_zeros(U) = 8 - num_ones(U).
 
-num_zeros(U) = 16 - num_ones(U).
+:- pragma foreign_decl("C", "const uint8_t MITS_int8_num_ones_table[];").
+
+:- pragma foreign_code("C", "
+
+const uint8_t MITS_int8_num_ones_table[256] = {
+    0,1,1,2,1,2,2,3,
+    1,2,2,3,2,3,3,4,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    4,5,5,6,5,6,6,7,
+    5,6,6,7,6,7,7,8
+};
+").
 
 :- pragma foreign_proc("C",
-    num_ones(U::in) = (N::out),
+    num_ones(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    U = U - ((U >> 1) & UINT32_C(0x55555555));
-    U = (U & UINT32_C(0x33333333)) + ((U >> 2) & UINT32_C(0x33333333));
-    U = (U + (U >> 4)) & UINT32_C(0x0f0f0f0f);
-    U = U + (U >> 8);
-    U = U + (U >> 16);
-    N = U & UINT32_C(0x3f);
+    N = MITS_int8_num_ones_table[(uint8_t)I];
+").
+
+:- pragma foreign_code("C#", "
+
+public static byte[] num_ones_table = {
+    0,1,1,2,1,2,2,3,
+    1,2,2,3,2,3,3,4,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    1,2,2,3,2,3,3,4,
+    2,3,3,4,3,4,4,5,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    2,3,3,4,3,4,4,5,
+    3,4,4,5,4,5,5,6,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    3,4,4,5,4,5,5,6,
+    4,5,5,6,5,6,6,7,
+    4,5,5,6,5,6,6,7,
+    5,6,6,7,6,7,7,8
+};
+
 ").
 
 :- pragma foreign_proc("C#",
-    num_ones(U::in) = (N::out),
+    num_ones(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // U
-    N = 0; // XXX NYI.
+    N = mercury.int8.num_ones_table[unchecked((byte)I)];
 ").
 
 :- pragma foreign_proc("Java",
-    num_ones(U::in) = (N::out),
+    num_ones(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // U.
-    N = 0; // XXX NYI.
+    N = java.lang.Integer.bitCount(I << 24);
 ").
+
+%---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
     num_leading_zeros(U::in) = (N::out),
@@ -969,7 +1067,7 @@ num_zeros(U) = 16 - num_ones(U).
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    // B.
+    // A.
     B = 0;  // XXX NYI.
 ").
 

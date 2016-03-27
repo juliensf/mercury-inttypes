@@ -16,6 +16,9 @@
 :- type uint16.
 
 %---------------------------------------------------------------------------%
+%
+% Conversion.
+%
 
     % from_int(A, B):
     % Fails if A is not in [0, uint16.max_uint16].
@@ -29,6 +32,8 @@
     % A synonym for the function det_from_int/1.
     %
 :- func uint16(int) = uint16.
+
+:- func to_int(uint16) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -301,6 +306,29 @@ det_from_int(I) = U :-
     then U = U0
     else error("uint16.det_from_int: cannot convert int to uint16")
     ).
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("C#",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("Java",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
 
 %---------------------------------------------------------------------------%
 
@@ -771,30 +799,47 @@ num_zeros(U) = 16 - num_ones(U).
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    // U.
-    N = 0; // XXX NYI.
+    U = (U & 0x5555) + ((U >> 1) & 0x5555);
+    U = (U & 0x3333) + ((U >> 2) & 0x3333);
+    U = (U & 0x0f0f) + ((U >> 4) & 0x0f0f);
+    U = (U & 0x00ff) + ((U >> 8) & 0x00ff);
+    N = U;
 ").
 
 :- pragma foreign_proc("C#",
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    N = 0; // XXX NYI.
+    U = (ushort) ((U & 0x5555) + ((U >> 1) & 0x5555));
+    U = (ushort) ((U & 0x3333) + ((U >> 2) & 0x3333));
+    U = (ushort) ((U & 0x0f0f) + ((U >> 4) & 0x0f0f));
+    U = (ushort) ((U & 0x00ff) + ((U >> 8) & 0x00ff));
+    N = (int) U;
 ").
 
 :- pragma foreign_proc("Java",
     num_ones(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    N = 0; // XXX NYI;
+    N = java.lang.Integer.bitCount(U << 16);
 ").
+
+%---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
     num_leading_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    // U.
-    N = 0; // XXX NYI.
+    if (U == 0) {
+        N = 16;
+    } else {
+        int n = 1;
+        if ((U >> 8) == 0) { n = n + 8;   U = U << 8; }
+        if ((U >> 12) == 0) { n = n + 4;  U = U << 4; }
+        if ((U >> 14) == 0) { n = n + 2;  U = U << 2; }
+        if ((U >> 15) == 0) { n = n + 1;  U = U << 1; }
+        N = n - (int)(U >> 15);
+    }
 ").
 
 :- pragma foreign_proc("C#",
@@ -804,43 +849,32 @@ num_zeros(U) = 16 - num_ones(U).
     if (U == 0) {
         N = 16;
     } else {
-        N = 0; // XXX NYI.
+        int n = 1;
+        if ((U >> 8) == 0)  { n = n + 8; U = (ushort)(U << 8); }
+        if ((U >> 12) == 0) { n = n + 4; U = (ushort)(U << 4); }
+        if ((U >> 14) == 0) { n = n + 2; U = (ushort)(U << 2); }
+        if ((U >> 15) == 0) { n = n + 1; U = (ushort)(U << 1); }
+        N = n - (int)(U >> 15);
     }
 ").
 
 :- pragma foreign_proc("Java",
-    num_leading_zeros(U::in) = (N::out),
+    num_leading_zeros(I::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    // U.
-    N = 0; // XXX NYI.
-").
-
-:- pragma foreign_proc("C",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
-"
-    // U.
-    N = 0; // XXX NYI.
-").
-
-:- pragma foreign_proc("C#",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    if (U == 0) {
+    if (I == 0) {
         N = 16;
     } else {
-        N = 0; // XXX NYI.
+        N = java.lang.Integer.numberOfLeadingZeros(I << 16);
     }
 ").
 
-:- pragma foreign_proc("Java",
-    num_trailing_zeros(U::in) = (N::out),
-    [will_not_call_mercury, promise_pure, thread_safe],
-"
-    N = 0; // XXX NYI.
-").
+%---------------------------------------------------------------------------%
+
+num_trailing_zeros(U) =
+    16 - num_leading_zeros(\ U /\ (U - one)).
+
+%---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
     reverse_bytes(A::in) = (B::out),
@@ -871,14 +905,22 @@ num_zeros(U) = 16 - num_ones(U).
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    B = A; // XXX NYI.
+    A = (((~0x5555) & A) >> 1) | ((0x5555 & A) << 1);
+    A = (((~0x3333) & A) >> 2) | ((0x3333 & A) << 2);
+    A = (((~0x0f0f) & A) >> 4) | ((0x0f0f & A) << 4);
+    A = (((~0x00ff) & A) >> 8) | ((0x00ff & A) << 8);
+    B = A;
 ").
 
 :- pragma foreign_proc("C#",
     reverse_bits(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    B = 0; // XXX NYI.
+    A = (ushort)((((~0x5555) & A) >> 1) | ((0x5555 & A) << 1));
+    A = (ushort)((((~0x3333) & A) >> 2) | ((0x3333 & A) << 2));
+    A = (ushort)((((~0x0f0f) & A) >> 4) | ((0x0f0f & A) << 4));
+    A = (ushort)((((~0x00ff) & A) >> 8) | ((0x00ff & A) << 8));
+    B = A;
 ").
 
 :- pragma foreign_proc("Java",

@@ -30,6 +30,14 @@
     %
 :- func uint32(int) = uint32.
 
+    % to_int(A, B):
+    % Fails if A > int32.max_int32.
+    % XXX Not on 64-bit machines.
+    %
+:- pred to_int(uint32::in, int::out) is semidet.
+
+:- func det_to_int(uint32) = int.
+
 %---------------------------------------------------------------------------%
 %
 % Comparison.
@@ -291,6 +299,52 @@ det_from_int(I) = U :-
     ( if from_int(I, U0)
     then U = U0
     else error("uint32.det_from_int: cannot convert int to uint32")
+    ).
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    if (A > INT32_MAX) {
+        SUCCESS_INDICATOR = MR_FALSE;
+    } else {
+        B = A;
+        SUCCESS_INDICATOR = MR_TRUE;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    try {
+        B = checked((int)A);
+        SUCCESS_INDICATOR = true;
+    } catch (System.OverflowException) {
+        B = 0;  // Dummy value.
+        SUCCESS_INDICATOR = false;
+    }
+").
+
+:- pragma foreign_proc("Java",
+    to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    if ((long)A > (long)java.lang.Integer.MAX_VALUE) {
+        B = 0;  // Dummy value;
+        SUCCESS_INDICATOR = false;
+    } else {
+        B = A;
+        SUCCESS_INDICATOR = true;
+    }
+").
+
+det_to_int(A) = B :-
+    ( if to_int(A, B0)
+    then B = B0
+    else error("uint32.det_to_int: cannot convert uint32 to int")
     ).
 
 %---------------------------------------------------------------------------%
@@ -806,6 +860,8 @@ num_zeros(U) = 32 - num_ones(U).
     N = java.lang.Integer.bitCount(U);
 ").
 
+%---------------------------------------------------------------------------%
+
 :- pragma foreign_proc("C",
     num_leading_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -854,6 +910,8 @@ num_zeros(U) = 32 - num_ones(U).
     N = java.lang.Integer.numberOfLeadingZeros(U);
 ").
 
+%---------------------------------------------------------------------------%
+
 :- pragma foreign_proc("C",
     num_trailing_zeros(U::in) = (N::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -901,6 +959,8 @@ num_zeros(U) = 32 - num_ones(U).
     N = java.lang.Integer.numberOfTrailingZeros(U);
 ").
 
+%---------------------------------------------------------------------------%
+
 :- pragma foreign_proc("C",
     reverse_bytes(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
@@ -929,6 +989,8 @@ num_zeros(U) = 32 - num_ones(U).
 "
     B = java.lang.Integer.reverseBytes(A);
 ").
+
+%---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
     reverse_bits(A::in) = (B::out),

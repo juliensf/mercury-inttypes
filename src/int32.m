@@ -16,6 +16,9 @@
 :- type int32.
 
 %---------------------------------------------------------------------------%
+%
+% Conversion.
+%
 
     % from_int(A, B):
     % Convert an int to a signed 32-bit integer.
@@ -30,6 +33,8 @@
     % A synonym for the function det_from_int/1.
     %
 :- func int32(int) = int32.
+
+:- func to_int(int32) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -310,6 +315,29 @@ det_from_int(I) = U :-
     then U = U0
     else error("int32.det_from_int: cannot convert int to int32")
     ).
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("C#",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
+
+:- pragma foreign_proc("Java",
+    to_int(A::in) = (B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    B = A;
+").
 
 %---------------------------------------------------------------------------%
 

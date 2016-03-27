@@ -2,9 +2,9 @@
 % vim: ft=mercury ts=4 sw=4 et wm=0 tw=0
 %---------------------------------------------------------------------------%
 
-% Test bit twiddling operations for unsigned 16-bit integers.
+% Test bit twiddling operations for signed 16-bit integers.
 
-:- module bit_twiddle_uint16.
+:- module bit_twiddle_int16.
 :- interface.
 
 :- import_module io.
@@ -16,7 +16,7 @@
 
 :- implementation.
 
-:- import_module uint16.
+:- import_module int16.
 
 :- import_module exception.
 :- import_module list.
@@ -25,23 +25,21 @@
 %---------------------------------------------------------------------------%
 
 main(!IO) :-
-    run_twiddle_test(uint16.num_zeros, "num_zeros", !IO),
+    run_twiddle_test(int16.num_zeros, "num_zeros", !IO),
     io.nl(!IO),
-    run_twiddle_test(uint16.num_ones, "num_ones", !IO),
+    run_twiddle_test(int16.num_ones, "num_ones", !IO),
     io.nl(!IO),
-    run_twiddle_test(uint16.num_leading_zeros, "num_leading_zeros", !IO),
+    %run_twiddle_test(int16.num_leading_zeros, "num_leading_zeros", !IO),
+    %io.nl(!IO),
+    %run_twiddle_test(int16.num_trailing_zeros, "num_trailing_zeros", !IO),
+    %io.nl(!IO),
+    %run_twiddle_test_b(int16.reverse_bits, "reverse_bits", !IO),
     io.nl(!IO),
-    run_twiddle_test(uint16.num_trailing_zeros, "num_trailing_zeros", !IO),
-    io.nl(!IO),
-    run_twiddle_test_b(uint16.reverse_bits, "reverse_bits", !IO),
-    io.nl(!IO),
-    run_twiddle_test_b(uint16.reverse_bytes, "reverse_bytes", !IO).
+    run_twiddle_test_b(int16.reverse_bytes, "reverse_bytes", !IO).
 
 %---------------------------------------------------------------------------%
 
-% Test uint16 -> int functions.
-
-:- pred run_twiddle_test((func(uint16) = int)::in, string::in,
+:- pred run_twiddle_test((func(int16) = int)::in, string::in,
     io::di, io::uo) is cc_multi.
 
 run_twiddle_test(Func, Desc, !IO) :-
@@ -49,8 +47,8 @@ run_twiddle_test(Func, Desc, !IO) :-
     As = numbers,
     list.foldl(run_twiddle_test_2(Func, Desc), As, !IO).
 
-:- pred run_twiddle_test_2((func(uint16) = int)::in, string::in,
-    uint16::in, io::di, io::uo) is cc_multi.
+:- pred run_twiddle_test_2((func(int16) = int)::in, string::in,
+    int16::in, io::di, io::uo) is cc_multi.
 
 run_twiddle_test_2(Func, Desc, A, !IO) :-
     ( try []
@@ -65,9 +63,9 @@ run_twiddle_test_2(Func, Desc, A, !IO) :-
 
 %---------------------------------------------------------------------------%
 
-% Test uint16 -> uint16 functions.
+% Test int16 -> int16 functions.
 
-:- pred run_twiddle_test_b((func(uint16) = uint16)::in, string::in,
+:- pred run_twiddle_test_b((func(int16) = int16)::in, string::in,
     io::di, io::uo) is cc_multi.
 
 run_twiddle_test_b(Func, Desc, !IO) :-
@@ -75,8 +73,8 @@ run_twiddle_test_b(Func, Desc, !IO) :-
     As = numbers,
     list.foldl(run_twiddle_test_b_2(Func, Desc), As, !IO).
 
-:- pred run_twiddle_test_b_2((func(uint16) = uint16)::in, string::in,
-    uint16::in, io::di, io::uo) is cc_multi.
+:- pred run_twiddle_test_b_2((func(int16) = int16)::in, string::in,
+    int16::in, io::di, io::uo) is cc_multi.
 
 run_twiddle_test_b_2(Func, Desc, A, !IO) :-
     ( try []
@@ -91,19 +89,21 @@ run_twiddle_test_b_2(Func, Desc, A, !IO) :-
 
 %---------------------------------------------------------------------------%
 
-:- func numbers = list(uint16).
+:- func numbers = list(int16).
 
 numbers = [
-    uint16.zero,
-    uint16.one,
-    uint16.two,
-    uint16.eight,
-    uint16.ten,
-    uint16.sixteen,
-    uint16.max_uint8,
-    uint16.max_uint16
+    int16.min_int16,
+    int16.min_int8,
+    int16.zero,
+    int16.one,
+    int16.two,
+    int16.eight,
+    int16.ten,
+    int16.sixteen,
+    int16.max_int8,
+    int16.max_int16
 ].
 
 %---------------------------------------------------------------------------%
-:- end_module bit_twiddle_uint16.
+:- end_module bit_twiddle_int16.
 %---------------------------------------------------------------------------%

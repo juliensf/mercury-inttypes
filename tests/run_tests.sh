@@ -23,6 +23,7 @@ TESTS="
     arith_uint16
     arith_uint32
     arith_uint64
+    bit_twiddle_int16
     bit_twiddle_int32
     bit_twiddle_int64
     bit_twiddle_uint8
@@ -66,6 +67,7 @@ TESTS="
 for t in $TESTS
 do
     passed="false"
+    touch $t.m
     mmc $grade_opt --no-verbose-make --make $t 2> /dev/null
     if test $? -ne 0
     then

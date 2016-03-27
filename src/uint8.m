@@ -788,7 +788,7 @@ to_decimal_string(U) =
 
 num_zeros(U) = 8 - num_ones(U).
 
-:- pragma foreign_decl("C", "const uint8_t MITS_uint_num_ones_table[];").
+:- pragma foreign_decl("C", "const uint8_t MITS_uint8_num_ones_table[];").
 
 :- pragma foreign_code("C", "
 
@@ -887,6 +887,8 @@ public static byte[] num_ones_table = {
 "
     N = java.lang.Integer.bitCount(U << 24);
 ").
+
+%---------------------------------------------------------------------------%
 
 :- pragma foreign_decl("C", "extern const uint8_t MITS_uint8_nlz_table[];").
 
@@ -1027,8 +1029,12 @@ public static byte[] nlz_table = {
     N = jmercury.uint8.nlz_table[U & 0xff];
 ").
 
+%---------------------------------------------------------------------------%
+
 num_trailing_zeros(U) =
     8 - num_leading_zeros(\ U /\ (U - one)).
+
+%---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
     reverse_bits(A::in) = (B::out),
