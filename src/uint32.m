@@ -30,13 +30,12 @@
     %
 :- func uint32(int) = uint32.
 
-    % to_int(A, B):
-    % Fails if A > int32.max_int32.
-    % XXX Not on 64-bit machines.
+    % semidet_to_int(A, B):
+    % Fails if A > int.max_int.
     %
-:- pred to_int(uint32::in, int::out) is semidet.
+:- pred semidet_to_int(uint32::in, int::out) is semidet.
 
-:- func det_to_int(uint32) = int.
+:- func to_int(uint32) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -161,6 +160,7 @@
 
 :- func max_uint8 = uint32.
 :- func max_uint16 = uint32.
+:- func max_int32 = uint32.
 :- func max_uint32 = uint32.
 
 :- func zero = uint32.
@@ -304,10 +304,13 @@ det_from_int(I) = U :-
 %---------------------------------------------------------------------------%
 
 :- pragma foreign_proc("C",
-    to_int(A::in, B::out),
+    semidet_to_int(A::in, B::out),
     [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
 "
-    if (A > INT32_MAX) {
+    if (sizeof(MR_Integer) == sizeof(uint64_t)) {
+        B = A;
+        SUCCESS_INDICATOR = MR_TRUE;
+    } else if  (A > (uint32_t)INT32_MAX) {
         SUCCESS_INDICATOR = MR_FALSE;
     } else {
         B = A;
@@ -316,7 +319,7 @@ det_from_int(I) = U :-
 ").
 
 :- pragma foreign_proc("C#",
-    to_int(A::in, B::out),
+    semidet_to_int(A::in, B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     try {
@@ -329,10 +332,10 @@ det_from_int(I) = U :-
 ").
 
 :- pragma foreign_proc("Java",
-    to_int(A::in, B::out),
+    semidet_to_int(A::in, B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    if ((long)A > (long)java.lang.Integer.MAX_VALUE) {
+    if ((A & 0xffffffffL) > (long)java.lang.Integer.MAX_VALUE) {
         B = 0;  // Dummy value;
         SUCCESS_INDICATOR = false;
     } else {
@@ -341,10 +344,10 @@ det_from_int(I) = U :-
     }
 ").
 
-det_to_int(A) = B :-
-    ( if to_int(A, B0)
+to_int(A) = B :-
+    ( if semidet_to_int(A, B0)
     then B = B0
-    else error("uint32.det_to_int: cannot convert uint32 to int")
+    else error("uint32.to_int: cannot convert uint32 to int")
     ).
 
 %---------------------------------------------------------------------------%
@@ -1066,6 +1069,29 @@ num_zeros(U) = 32 - num_ones(U).
     [will_not_call_mercury, promise_pure, thread_safe],
 "
     U = 0xffff;
+").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    max_int32 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    U = INT32_MAX;
+").
+
+:- pragma foreign_proc("C#",
+    max_int32 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = int.MaxValue;
+").
+
+:- pragma foreign_proc("Java",
+    max_int32 = (U::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    U = java.lang.Integer.MAX_VALUE;
 ").
 
 %---------------------------------------------------------------------------%

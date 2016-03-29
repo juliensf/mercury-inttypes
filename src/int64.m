@@ -26,6 +26,13 @@
     %
 :- func int64(int) = int64.
 
+    % semidet_to_int(A, B):
+    % Fails if A is not in [int.min_int, int.max_int].
+    %
+:- pred semidet_to_int(int64::in, int::out) is semidet.
+
+:- func to_int(int64) = int.
+
 %---------------------------------------------------------------------------%
 %
 % Comparison.
@@ -286,6 +293,56 @@ int64(I) = from_int(I).
 "
     B = (long) A;
 ").
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    semidet_to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    if (sizeof(MR_Integer) == sizeof(int64_t)) {
+        B = A;
+        SUCCESS_INDICATOR = MR_TRUE;
+    } else if (A > (int64_t)INT32_MAX || A < (int64_t)INT32_MIN){
+        SUCCESS_INDICATOR = MR_FALSE;
+    } else {
+        B = (MR_Integer) A;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    semidet_to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    try {
+        B = checked((int)A);
+        SUCCESS_INDICATOR = true;
+    } catch (System.OverflowException) {
+        B = 0; // Dummy value.
+        SUCCESS_INDICATOR = false;
+    }
+").
+
+:- pragma foreign_proc("Java",
+    semidet_to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    if (A > (long)java.lang.Integer.MAX_VALUE ||
+        A < (long)java.lang.Integer.MIN_VALUE
+    ){
+        B = 0; // Dummy value.
+        SUCCESS_INDICATOR = false;
+    } else {
+        B =  A.intValue();
+        SUCCESS_INDICATOR = true;
+    }
+").
+
+to_int(A) = B :-
+    ( if semidet_to_int(A, B0)
+    then B = B0
+    else error("int64.det_to_int: cannot convert int64 to int")
+    ).
 
 %---------------------------------------------------------------------------%
 

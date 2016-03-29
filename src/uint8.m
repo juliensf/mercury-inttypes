@@ -33,6 +33,8 @@
     %
 :- func uint8(int) = uint8.
 
+    % to_int(A) = B:
+    %
 :- func to_int(uint8) = int.
 
 %---------------------------------------------------------------------------%
@@ -320,7 +322,7 @@ det_from_int(I) = U :-
     to_int(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    B = A;
+    B = A & 0xff;
 ").
 
 %---------------------------------------------------------------------------%

@@ -55,6 +55,14 @@ TESTS="
     from_int_uint16
     from_int_uint32
     from_int_uint64
+    to_int_int8
+    to_int_int16
+    to_int_int32
+    to_int_int64
+    to_int_uint8
+    to_int_uint16
+    to_int_uint32
+    to_int_uint64
     to_string_int8
     to_string_int16
     to_string_int32

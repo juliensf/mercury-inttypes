@@ -16,6 +16,9 @@
 :- type uint64.
 
 %---------------------------------------------------------------------------%
+%
+% Conversion.
+%
 
     % from_int(A, B):
     % Fails if I < 0.
@@ -29,6 +32,13 @@
     % A synonym for the function det_from_int/1.
     %
 :- func uint64(int) = uint64.
+
+    % semidet_to_int(A, B):
+    % Fails if A > int.max_int.
+    %
+:- pred semidet_to_int(uint64::in, int::out) is semidet.
+
+:- func to_int(uint64) = int.
 
 %---------------------------------------------------------------------------%
 %
@@ -282,6 +292,56 @@ det_from_int(I) = U :-
     ( if from_int(I, U0)
     then U = U0
     else error("uint64.det_from_int: cannot convert int to uint64")
+    ).
+
+%---------------------------------------------------------------------------%
+
+:- pragma foreign_proc("C",
+    semidet_to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe, will_not_modify_trail],
+"
+    if (sizeof(MR_Integer) == sizeof(uint32_t) && A > INT32_MAX) {
+        SUCCESS_INDICATOR = MR_FALSE;
+    } else if (sizeof(MR_Integer) == sizeof(uint64_t) && A > INT64_MAX) {
+        SUCCESS_INDICATOR = MR_FALSE;
+    } else {
+        B = (MR_Integer) A;
+        SUCCESS_INDICATOR = MR_TRUE;
+    }
+").
+
+:- pragma foreign_proc("C#",
+    semidet_to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    try {
+        B = checked((int)A);
+        SUCCESS_INDICATOR = true;
+    } catch (System.OverflowException) {
+        B = 0; // Dummy value.
+        SUCCESS_INDICATOR = false;
+    }
+").
+
+:- pragma foreign_proc("Java",
+    semidet_to_int(A::in, B::out),
+    [will_not_call_mercury, promise_pure, thread_safe],
+"
+    long L = java.lang.Integer.MAX_VALUE;
+
+    if ((A > L) ^ ((A < 0) != (L < 0))) {
+        B = 0; // Dummy value.
+        SUCCESS_INDICATOR = false;
+    } else {
+        B =  A.intValue();
+        SUCCESS_INDICATOR = true;
+    }
+").
+
+to_int(A) = B :-
+    ( if semidet_to_int(A, B0)
+    then B = B0
+    else error("uint64.to_int: cannot convert uint64 to int")
     ).
 
 %---------------------------------------------------------------------------%

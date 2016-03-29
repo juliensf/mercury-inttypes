@@ -154,8 +154,8 @@
 % Constants.
 %
 
-:- func max_uint8 = uint16.     % 0xff.
-:- func max_uint16 = uint16.    % 0xffff.
+:- func max_uint8 = uint16.
+:- func max_uint16 = uint16.
 
 :- func zero = uint16.
 :- func one = uint16.
@@ -327,7 +327,7 @@ det_from_int(I) = U :-
     to_int(A::in) = (B::out),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    B = A;
+    B = A & 0xffff;
 ").
 
 %---------------------------------------------------------------------------%
