@@ -236,7 +236,7 @@
 % Java implementation.
 %
 
-:- pragma foreign_type("Java", int16, "java.lang.Short")
+:- pragma foreign_type("Java", int16, "short")
     where equality is int16_equal,
           comparison is int16_compare.
 
@@ -260,7 +260,7 @@
     int16_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A.intValue() == B.intValue());
+    SUCCESS_INDICATOR = (A == B);
 ").
 
 int16_compare(Result, A, B) :-

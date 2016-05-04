@@ -233,7 +233,7 @@
 % Java implementation.
 %
 
-:- pragma foreign_type("Java", int64, "java.lang.Long")
+:- pragma foreign_type("Java", int64, "long")
     where equality is int64_equal,
           comparison is int64_compare.
 
@@ -257,7 +257,7 @@
     int64_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A.longValue() == B.longValue());
+    SUCCESS_INDICATOR = (A == B);
 ").
 
 int64_compare(Result, A, B) :-
@@ -333,7 +333,7 @@ int64(I) = from_int(I).
         B = 0; // Dummy value.
         SUCCESS_INDICATOR = false;
     } else {
-        B =  A.intValue();
+        B =  (int) A;
         SUCCESS_INDICATOR = true;
     }
 ").

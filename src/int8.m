@@ -222,7 +222,7 @@
 % Java implementation.
 %
 
-:- pragma foreign_type("Java", int8, "java.lang.Byte")
+:- pragma foreign_type("Java", int8, "byte")
     where equality is int8_equal,
           comparison is int8_compare.
 
@@ -246,7 +246,7 @@
     int8_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A.intValue() == B.intValue());
+    SUCCESS_INDICATOR = (A == B);
 ").
 
 int8_compare(Result, A, B) :-

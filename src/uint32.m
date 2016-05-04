@@ -225,7 +225,7 @@
 % Java implementation.
 %
 
-:- pragma foreign_type("Java", uint32, "java.lang.Integer")
+:- pragma foreign_type("Java", uint32, "int")
     where equality is uint32_equal,
           comparison is uint32_compare.
 
@@ -249,7 +249,7 @@
     uint32_equal(A::in, B::in),
     [will_not_call_mercury, promise_pure, thread_safe],
 "
-    SUCCESS_INDICATOR = (A.intValue() == B.intValue());
+    SUCCESS_INDICATOR = (A == B);
 ").
 
 uint32_compare(Result, A, B) :-

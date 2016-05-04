@@ -10,6 +10,10 @@ This library is a work-in-progress and not yet ready for general use.
 'mercury_inttypes' is licensed under a simple 2-clause BSD style license.  See the
 file [COPYING](COPYING) for details.
 
+## REQUIREMENTS
+
+Building this library in the Java grade requires Mercury rotd-2016-04-14 or later.
+
 ## INSTALLATION
 
 Check the values in the file [Make.options](Make.options) to see if they agree
